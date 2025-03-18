@@ -6,7 +6,7 @@ import java.awt.Point;
 import javax.swing.ImageIcon;
 
 public class MissileOneDown implements Missile{
-	Image missileOne = new ImageIcon("images/미사일하단").getImage();
+	Image missileOne = new ImageIcon("images/미사일하단.png").getImage();
 	public Point bullet;
 	
 	public MissileOneDown(int x, int y) {
