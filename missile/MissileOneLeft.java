@@ -6,10 +6,16 @@ import java.awt.Point;
 import javax.swing.ImageIcon;
 
 public class MissileOneLeft implements Missile{
+	
+	
+	private static MissileOneLeft missileoneleft = new MissileOneLeft();
+	public 
+	
 	private Image missileOne = new ImageIcon("images/미사일좌측.png").getImage();
 	public Point bullet; // 총알에 x,y좌표 설정 하기위한 변수
 	
-	public MissileOneLeft(int x, int y) { //bullet에 x,y축 포인트주기
+	
+	public void MissileOneL(int x, int y) {
 		bullet = new Point(x,y);
 	}
 	public void move() {

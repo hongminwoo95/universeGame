@@ -7,24 +7,23 @@ import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.Vector;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
 import Player.Player;
 import Player.PlayerCenter;
-import Player.PlayerImage;
 import missile.Missile;
+import missile.MissileCenter;
 
 public class GameFrame extends JFrame implements KeyListener, Runnable {
 
 	
 	private int f_width = 800; // 프레임 너비설정
 	private int f_height = 800; // 프레임 높이 설정
-	private PlayerCenter playercenter = new PlayerCenter(); // Player클래스 의존
 	private ArrayList<Missile> missileList = new ArrayList(); // 미사일 이미지 리스트
-	private ArrayList<Player> playerList = new ArrayList(); // 플레이어 이미지 리스트
-	// private ArrayList
+	private Vector<Image> playerList = new Vector(); // 플레이어 이미지 리스트
 	
 	// 키보드셋팅
 	boolean keyUp = false; // 윗키
@@ -35,22 +34,13 @@ public class GameFrame extends JFrame implements KeyListener, Runnable {
 	
 	// 참조형
 	private Missile missile; // 미사일 인터페이스 참조변수
-	private Player player1; // 플레이어 인터페이스 참조변수
 	
-	//캐릭터 이미지
-
-	private Image player;
-	private String name;
-//	private Image playerL; // 좌측면 캐릭터 이미지
-//	private Image playerR; // 우측면 캐릭터 이미지
-//	private Image playerU; // 상단면 캐릭터 이미지
-//	private Image playerD; // 하단면 캐릭터 이미지
+	private Image player; //캐릭터 이미지
+	private Image missileImage; // 미사일 이미지
 	
 	// 배경 이미지
 	private Image background1; // 화염행성 배경
 	private Image background2; // 얼음행성 배경
-	
-	private Image missileImage; // 미사일 이미지
 	
 	private int x = 100; // 게임시작시 player 나타날 x좌표
 	private int y = 100; // 게임시작시 player 나타날 y좌표
@@ -80,10 +70,7 @@ public class GameFrame extends JFrame implements KeyListener, Runnable {
 	
 	public void init() { // 각종 이미지 객체 생성
 		background1 = new ImageIcon("images/얼음행성.png").getImage(); // 맵 이미지 생성
-//		playerL = playerClass.getPlayerL(); // 플레이어 좌측이미지 생성
-//		playerR = playerClass.getPlayerR(); // 플레이어 우측이미지 생성
-//		playerU = playerClass.getPlayerU(); // 플레이어 상단이미지 생성
-//		playerD = playerClass.getPlayerD(); // 플레이어 하단이미지 생성
+		
 	}
 	
 	public void start() { // 시작 메서드
@@ -105,9 +92,9 @@ public class GameFrame extends JFrame implements KeyListener, Runnable {
 	
 	public void update(Graphics g) { // 이미지 생성
 		Draw_background();// 배경그림 가져옴
-		Draw_Player(); // 플레이어 그림 가져옴
 		Draw_missile(); // 미사일 그림 가져옴
-		g.drawImage(buffImage, 0, 0, this); // 화면 버퍼에 그린 그림을 버퍼에 덮어씌우기
+		Draw_Player(); // 플레이어 그림 가져옴
+		g.drawImage(buffImage, 0, 0, this); // 화면 버퍼에 그린 그림을 버퍼에 덮어씌우기 (아래에서 그린그림 찍어내기)
 	}
 	
 	public void Draw_background() { // 이미지 그릴부분
@@ -115,7 +102,12 @@ public class GameFrame extends JFrame implements KeyListener, Runnable {
 	}
 	
 	public void Draw_Player() {
-		buffg.drawImage(player, x, y, 110, 110, this);
+		for (int i=0; i<playerList.size(); ++i) {
+			player = playerList.get(i);
+			buffg.drawImage(player, x, y, 100, 100, this);
+		}
+		//buffg.drawImage(player, x, y, 110, 110, this);
+		playerList.clear();
 		// 프레임에 player에 저장된 변환되는 이미지를 x=100, y=100 좌표에 110x110해상도로 그려넣습니다.
 	}
 	public void Draw_missile() {
@@ -141,7 +133,6 @@ public class GameFrame extends JFrame implements KeyListener, Runnable {
 		} catch (Exception e) {
 		}
 	}
-	
 	@Override
 	public void keyPressed(KeyEvent e) {
 		switch (e.getKeyCode()) {
@@ -182,84 +173,15 @@ public class GameFrame extends JFrame implements KeyListener, Runnable {
 			break;
 		}
 	}
-	public void KeyProcess() { // player이미지가 JFame너비,높이를 넘어가지 못하게 이벤트 발생 
-	
-		
-		if (keyDown&&!keyUp&&!keyLeft&&!keyRight) { // ↓ 아랫키
-		if(y>=710) { 
-			player = (Image) playercenter.getPlayerCenter().getPlayerImage();
-			y = 710;	
-		}else {
-			System.out.println("Test2");
-			System.out.println(player);
-		//	player = playercenter.getPlayerCenter().getPlayer(player);
-			System.out.println(player);
-			//		player = playerD;
-		//	playerClass.setMy(playerR);
-			y += 5;
+	public void SpaceProcess() { // 미사일 이미지 가져오기
+		if(keySpace==true) { // 스페이스키를 눌렀을때
+			if(PlayerCenter.getPlayerCenter().getType().equals("PlayerL")) { //플레이어 이미지가 R일때
+				MissileCenter.getMissileCenter().setType("미사일좌측");
+			}
 		}
 	}
-
-	
-//		if (keyDown&&!keyUp&&!keyLeft&&!keyRight) { // ↓ 아랫키
-//			if(y>=710) { 
-//				player = playercenter.getPlayerCenter().getPlayer(player);
-//				y = 710;	
-//			}else {
-//				System.out.println("Test2");
-//				System.out.println(player);
-//				player = playercenter.getPlayerCenter().getPlayer(player);
-//				System.out.println(player);
-//				//		player = playerD;
-//			//	playerClass.setMy(playerR);
-//				y += 5;
-//			}
-//		}
-//		if (keyUp&&!keyDown&&!keyLeft&&!keyRight) { // ↑ 윗키
-// 			if(y<=10) { // y가 좌표 10보다 같거나 작을때
-// 				player = playerU; // 이미지 변환
-// 				playerClass.setMy(playerR);
-// 				y = 10; // y좌표 10에서 멈추게하기
-// 			}else { // 아닐시
-// 				player = playerU; // 이미지변환
-// 				playerClass.setMy(playerR);
-// 				y -= 5; // y좌표에서 이동
-// 			}
-// 		}
-//		if (keyLeft&&!keyRight&&!keyUp&&!keyDown) { // ← 좌측키
-//			if(x<=-20) {
-//			//	player = playerL;
-//			//	playerClass.setMy(playerR);
-//				x = -20;
-//			}else {
-//			//	player = playerL;
-//			//	playerClass.setMy(playerR);
-//				x -= 5;
-//			}
-//		}
-//		if (keyRight&&!keyLeft&&!keyUp&&!keyDown) { // → 우측키
-//			if(x>=710) {
-//			//	player = playerR;
-//			//	playerClass.setMy(playerR);
-//				x = 710;
-//			}else {
-//			//	player = playerR;
-//				//playerClass.setMy(playerR);
-//				x += 5;
-//			}
-//		}
-//		if (keyLeft&&keyUp&&!keyDown&&!keyRight){
-//				x -= 5; y -= 5;
-//		}
- 	}
-	
-	
-	
-	
-	
-	
-	
-	// player쪽 수정 완료하면 여기 수정들어가기
+//	// 조건이 true면 string을 받아서 
+//	// player쪽 수정 완료하면 여기 수정들어가기
 //	public void OneProcess() { // 미사일 이미지 가져오기
 //		if(keySpace==true) { // 스페이스가 missile = (Missile)PlayerClass
 //			missile = (Missile) playerClass.getMissile(); // player type에 따라 해당 미사일 이미지 객체 주소를 missile에 대입
@@ -273,43 +195,142 @@ public class GameFrame extends JFrame implements KeyListener, Runnable {
 //			keySpace = false; 
 //		}
 //	}
-//	public void missileOneProcess() { // 미사일 이미지 가져오기
-//		if(keySpace==true) { // 스페이스가 missile = (Missile)PlayerClass
-//			missile = (Missile) playerClass.getMissile(); // player type에 따라 해당 미사일 이미지 객체 주소를 missile에 대입
-//			missileImage = missile.getImage(); // missile 객체의 이미지를 missileImage에 대입
-//			int xx = x + playerR.getWidth(null) / 2 - missileImage.getWidth(null) / 2; // x축 중앙
-//			int yy = y + playerR.getHeight(null) / 2 - missileImage.getHeight(null) / 2; // y축 중앙
-//			// player x좌표 + player이미지 너비 중앙 - missile이미지 너비중앙을 xx에 대입한다
-//			// https://docs.oracle.com/javase/8/docs/api/java/awt/Image.html#getWidth-java.awt.image.ImageObserver- 너비가 null일때 초기값 api에 -1로 표기되어있음
-//			missile = playerClass.getMissileCenter().makeMissile(missile, xx, yy);
-//			missileList.add(missile); // missileList에 미사일 이미지 add
-//			keySpace = false; 
-//		}
-//	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
-
-	
+	public void KeyProcess() { // player이미지가 JFrame너비,높이를 넘어가지 못하게 이벤트 발생 
+		if (keyLeft&&!keyRight&&!keyUp&&!keyDown) { // ← 좌측키
+			if(x<=-20) {
+				PlayerCenter.getPlayerCenter().setType("PlayerL");
+				player = PlayerCenter.getPlayerCenter().getPlayer();
+				playerList.add(player);
+				x = -20;
+				x += 5;
+			}else {
+				PlayerCenter.getPlayerCenter().setType("PlayerL");
+				player = PlayerCenter.getPlayerCenter().getPlayer();
+				playerList.add(player);
+				x -= 5;
+			}
+		}
+		if (keyRight&&!keyLeft&&!keyUp&&!keyDown) { // → 우측키
+			if(x>=710) {
+				PlayerCenter.getPlayerCenter().setType("PlayerR");
+				player = PlayerCenter.getPlayerCenter().getPlayer();
+				playerList.add(player);
+				x = 710;
+				x += 5;
+			}else {
+				PlayerCenter.getPlayerCenter().setType("PlayerR");
+				player = PlayerCenter.getPlayerCenter().getPlayer();
+				playerList.add(player);
+				x += 5;
+			}
+		}
+		if (keyUp&&!keyDown&&!keyLeft&&!keyRight) { // ↑ 윗키
+			if(y<=10) { // y가 좌표 10보다 같거나 작을때
+				PlayerCenter.getPlayerCenter().setType("PlayerU");
+				player = PlayerCenter.getPlayerCenter().getPlayer();
+				playerList.add(player);
+				y = 10; // y좌표 10에서 멈추게하기
+				y -=5;
+			}else { // 아닐시
+				PlayerCenter.getPlayerCenter().setType("PlayerU");
+				player = PlayerCenter.getPlayerCenter().getPlayer();
+				playerList.add(player);
+				y -= 5; // y좌표에서 이동
+			}
+		}
+		if (keyDown && !keyUp && !keyLeft && !keyRight) { // ↓ 아랫키
+			if (y >= 710) { // JFrame y+710를 넘어갈시
+				PlayerCenter.getPlayerCenter().setType("PlayerD");
+				player = PlayerCenter.getPlayerCenter().getPlayer();
+				playerList.add(player);
+				y = 710; // JFrame y+710를 넘어갈시 멈춤
+				y += 5;
+			} else {
+				PlayerCenter.getPlayerCenter().setType("PlayerD");
+				player = PlayerCenter.getPlayerCenter().getPlayer();
+				playerList.add(player);
+				y += 5;
+			}
+		}
+		if (keyLeft&&keyUp&&!keyDown&&!keyRight){ // 좌측상단 ↖키
+			if (x<=-20) {
+				x = -20;
+				if(y<=-10) {
+					y = -10;
+					PlayerCenter.getPlayerCenter().setType("PlayerLU");
+					player = PlayerCenter.getPlayerCenter().getPlayer();
+					playerList.add(player);
+				}
+				x -= 5;
+				y -= 5;
+			}else {
+				PlayerCenter.getPlayerCenter().setType("PlayerLU"); 
+				player = PlayerCenter.getPlayerCenter().getPlayer();
+				playerList.add(player);
+				x -= 5;
+				y -= 5;
+			}
+		
+		}
+		if (keyLeft&&keyDown&&!keyUp&&!keyRight){ // ↙ 우측하단키
+			if (x <= -20) {
+				x = -20;
+				if(y >= 710) {
+					y = 710;
+					PlayerCenter.getPlayerCenter().setType("PlayerLD");
+					player = PlayerCenter.getPlayerCenter().getPlayer();
+					playerList.add(player);
+				}
+				x -= 5;
+				y += 5;
+			}else {
+				PlayerCenter.getPlayerCenter().setType("PlayerLD");
+				player = PlayerCenter.getPlayerCenter().getPlayer();
+				playerList.add(player);
+				x -= 5;
+				y += 5;
+			}
+		
+		}
+		if (keyRight&&keyUp&&!keyDown&&!keyLeft){ // ↗ 우측상단키
+			if (x >= 710) {
+				x = 710;
+				if(y <= -10) {
+					y = -10;
+					PlayerCenter.getPlayerCenter().setType("PlayerRU");
+					player = PlayerCenter.getPlayerCenter().getPlayer();
+					playerList.add(player);
+				}
+				x += 5;
+				y -= 5;
+			}else {
+				PlayerCenter.getPlayerCenter().setType("PlayerRU");
+				player = PlayerCenter.getPlayerCenter().getPlayer();
+				playerList.add(player);
+				x += 5;
+				y -= 5;
+			}
+		}
+		if (keyRight&&keyDown&&!keyUp&&!keyLeft){ // ↘ 우측하단키 
+			if (x >= 710) {
+				x = 710;
+				if(y >= 710) {
+					y = 710;
+					PlayerCenter.getPlayerCenter().setType("PlayerDU");
+					player = PlayerCenter.getPlayerCenter().getPlayer();
+					playerList.add(player);
+				}
+				x += 5;
+				y += 5;
+			}else {
+				PlayerCenter.getPlayerCenter().setType("PlayerDU");
+				player = PlayerCenter.getPlayerCenter().getPlayer();
+				playerList.add(player);
+				x += 5;
+				y += 5;
+			}
+		}
+ 	}
 	@Override
 	public void keyTyped(KeyEvent e) { // 문자이벤트를 처리하는 타입
 

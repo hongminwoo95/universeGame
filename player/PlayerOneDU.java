@@ -5,24 +5,21 @@ import java.awt.Point;
 
 import javax.swing.ImageIcon;
 
-
-public class PlayerOneDown implements Player{ // 캐릭터 하단
+public class PlayerOneDU implements Player{
 	
 	private int playerX = 0; // 캐릭터 x좌표
 	private int playerY = 0; // 캐릭터 y좌표
 	private Point playerimage; // Point참조한 playerImage 변수선언
 	
-	private Image playerD = new ImageIcon("images/하단.png").getImage(); // 좌측면 캐릭터
+	private Image playerDU = new ImageIcon("images/우측하단대각.png").getImage(); // 우측면 캐릭터
 	
-	private static PlayerOneDown playeronedown = new PlayerOneDown();
-	public static PlayerOneDown getPlayerOneDown() {
-		return playeronedown;
-	}
-	public PlayerOneDown() {
+	private static PlayerOneDU playeroneDU = new PlayerOneDU();
+	public static PlayerOneDU getPlayerOneDU() {
+		return playeroneDU;
 	}
 	@Override
 	public Image getPlayer() {
-		return playerD;
+		return playerDU;
 	}
 	@Override
 	public int getPlayerX() {
@@ -34,11 +31,10 @@ public class PlayerOneDown implements Player{ // 캐릭터 하단
 	}
 	@Override
 	public int getPlayerWidth() {
-		return playerD.getWidth(null);
+		return playerDU.getWidth(null);
 	}
 	@Override
 	public int getPlayerHeight() {
-		return playerD.getHeight(null);
+		return playerDU.getHeight(null);
 	}
-
 }
