@@ -8,11 +8,11 @@ import javax.swing.ImageIcon;
 public class MissileOneLeft implements Missile{
 	
 	private Image missileLeft = new ImageIcon("images/미사일좌측.png").getImage();
-	public Point bullet; // 총알에 x,y좌표 설정 하기위한 변수
+	public Point bullet ; // 총알에 x,y좌표 설정 하기위한 변수
 	
 	
 	
-	public Point MissileOneL(Missile missile, int x, int y) {
+	public Point MissileOneL(int x, int y) {
 		bullet = new Point(x,y);
 		return bullet;
 	}

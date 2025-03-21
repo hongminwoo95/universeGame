@@ -1,9 +1,8 @@
 package missile;
 
-import java.awt.Image;
-
 public class MissileCenter {
 	
+	private static final MissileOneLeft Missile = null;
 	private static MissileCenter missilecenter = new MissileCenter(); // 싱글톤패턴 적용
 	public static MissileCenter getMissileCenter() {
 		return missilecenter;
@@ -15,7 +14,7 @@ public class MissileCenter {
 		return playertype;
 	}
 	public void setPlayertype(String playertype) {
-		playertype = playertype;
+		this.playertype = playertype;
 	}
 
 
@@ -25,7 +24,7 @@ public class MissileCenter {
 			missile = new MissileOneLeft(); // 좌측미사일 객체 생성
 		}else if (playertype.equals("PlayerR")) {
 			missile = new MissileOneRight();
-		}else if (playertype.equals("PlayerU")) {
+ 		}else if (playertype.equals("PlayerU")) {
 			missile = new MissileOneUp();
 		}else if (playertype.equals("PlayerD")) {
 			missile = new MissileOneDown();
@@ -40,10 +39,48 @@ public class MissileCenter {
 		}
 		return missile;
 	}	
-	public Missile makeMissile(Missile missile, int xx, int yy) {
-		if(playertype.equals("PlayerL")) {
-			return (Missile) new MissileOneLeft().MissileOneL(missile, xx, yy);
+	public Missile getMissileXY(Missile missileImage, int x, int y) { // 미사일 이미지 가져오기
+		Missile missile = null;
+		if (playertype.equals("PlayerL")) { // 플레이어 방향이 좌측일때
+			if (Missile instanceof MissileOneLeft) {
+				missile = (Missile) new MissileOneLeft().MissileOneL(x, y); // 좌측미사일 객체 생성
+			}
+		}else if (playertype.equals("PlayerR")) {
+			if (Missile instanceof MissileOneLeft) {
+				missile = (Missile) new MissileOneRight().MissileOneR(x, y);
+			}
+		}else if (playertype.equals("PlayerU")) {
+			if (Missile instanceof MissileOneLeft) {
+				missile = (Missile) new MissileOneUp().MissileOneUp(x, y);
+			}
+		}else if (playertype.equals("PlayerD")) {
+			if (Missile instanceof MissileOneLeft) {
+				missile = (Missile) new MissileOneDown().MissileOneDown(x, y);
+			}
+		}else if (playertype.equals("PlayerLU")) {
+			if (Missile instanceof MissileOneLeft) {
+				missile = (Missile) new MissileOneLU().MissileOneUp(x, y);
+			}
+		}else if (playertype.equals("PlayerLD")) {
+			if (Missile instanceof MissileOneLeft) {
+				missile = (Missile) new MissileOneLD().MissileOneUp(x, y);
+			}
+		}else if (playertype.equals("PlayerRU")) {
+			if (Missile instanceof MissileOneLeft) {
+				missile = (Missile) new MissileOneRU().MissileOneUp(x, y);
+			}
+		}else if (playertype.equals("PlayerRD")) {
+			if (Missile instanceof MissileOneLeft) {
+			missile = new MissileOneRD();
 		}
+		return missile;
+	}
+//	public Missile makeMissile(Missile a, int x, int y) {
+//		Missile missile = null;
+//		if(playertype.equals("PlayerL")) {
+//		
+//			return makeMissile;
+//		}
 		return missile;
 			
 			
@@ -63,3 +100,4 @@ public class MissileCenter {
 //	}
 	}
 }
+

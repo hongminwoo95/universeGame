@@ -20,21 +20,27 @@ public class PlayerCenter {
 		Player temp = null;
 		if(type.equals("PlayerL")) { //키입력받은 글자열이 PlayerL일시
 			temp = new PlayerOneLeft();
-			// PlayerL이미지 참조
-		}else if (type.equals("PlayerR")) {
+		}
+		if (type.equals("PlayerR")) {
 			temp = new PlayerOneRight();
-		}else if (type.equals("PlayerU")) {
+		}
+		if (type.equals("PlayerU")) {
 			temp = new PlayerOneUp();
-		}else if (type.equals("PlayerD")) {
+		}
+		if (type.equals("PlayerD")) {
 			temp = new PlayerOneDown();
-		}else if (type.equals("PlayerLU")) {
+		}
+		if (type.equals("PlayerLU")) {
 			temp = new PlayerOneLU();
-		}else if (type.equals("PlayerLD")) {
+		}
+		if (type.equals("PlayerLD")) {
 			temp = new PlayerOneLD();
-		}else if (type.equals("PlayerRU")) {
+		}
+		if (type.equals("PlayerRU")) {
 			temp = new PlayerOneRU();
-		}else if (type.equals("PlayerDU")) {
-			temp = new PlayerOneDU();
+		}
+		if (type.equals("PlayerRD")) {
+			temp = new PlayerOneRD();
 		}
 		return temp;
 	}

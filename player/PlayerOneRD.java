@@ -1,32 +1,21 @@
 package Player;
 
 import java.awt.Image;
-import java.awt.Paint;
 import java.awt.Point;
 
 import javax.swing.ImageIcon;
 
-public class PlayerOneLeft implements Player{
+public class PlayerOneRD implements Player{
 	
 	private int playerX = 0; // 캐릭터 x좌표
 	private int playerY = 0; // 캐릭터 y좌표
 	private Point playerimage; // Point참조한 playerImage 변수선언
 	
-	private Image playerL = new ImageIcon("images/좌측.png").getImage(); // 좌측면 캐릭터
-	
-	public PlayerOneLeft() {
-		
-	}
-	
-	
-	public Point PlayerOneLeft(int x, int y) {
-		playerimage = new Point(x,y);
-		return playerimage;
-	}
+	private Image playerRD = new ImageIcon("images/우측하단대각.png").getImage(); // 우측면 캐릭터
 	
 	@Override
 	public Image getPlayer() {
-		return playerL;
+		return playerRD;
 	}
 	@Override
 	public int getPlayerX() {
@@ -38,11 +27,10 @@ public class PlayerOneLeft implements Player{
 	}
 	@Override
 	public int getPlayerWidth() {
-		return playerL.getWidth(null);
+		return playerRD.getWidth(null);
 	}
 	@Override
 	public int getPlayerHeight() {
-		return playerL.getHeight(null);
+		return playerRD.getHeight(null);
 	}
-
 }

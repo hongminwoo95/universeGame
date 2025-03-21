@@ -177,40 +177,61 @@ public class GameFrame extends JFrame implements KeyListener, Runnable {
 		case KeyEvent.VK_RIGHT:
 			keyRight = false;
 			break;
-		case KeyEvent.VK_SPACE: // 스페이스키 입력 처리 추가(미사일 발사)
-			keySpace = false;
-			break;
+//		case KeyEvent.VK_SPACE: // 스페이스키 입력 처리 추가(미사일 발사)
+//			keySpace = false;
+//			break;
 		}
 	}
 	public void SpaceProcess() { // 미사일 이미지 가져오기
-		if(keySpace==true) { // 스페이스키를 눌렀을때
+		if(keySpace) { // 스페이스키를 눌렀을때
 			if(PlayerCenter.getPlayerCenter().getType().equals("PlayerL")) { //플레이어 이미지가 L일때
 				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); // MissileCenter클래스 String타입 type변수에 PlayerL에 맞는 미사일 이름 대입
 				int xx = x + PlayerCenter.getPlayerCenter().getPlayer().getPlayerWidth() / 2 - MissileCenter.getMissileCenter().getMissile().getWidth() / 2;
 				int yy = y + PlayerCenter.getPlayerCenter().getPlayer().getPlayerHeight() / 2 - MissileCenter.getMissileCenter().getMissile().getHeight() / 2; 
-				
-				missileList.add(missileImage);
+				missile = MissileCenter.getMissileCenter().getMissileXY(missile ,xx, yy);
+				missileList.add((Image) missile);
 			}else if(PlayerCenter.getPlayerCenter().getType().equals("PlayerR")) { 
-				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); 
-				missileList.add(missileImage);
+				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); // MissileCenter클래스 String타입 type변수에 PlayerL에 맞는 미사일 이름 대입
+				int xx = x + PlayerCenter.getPlayerCenter().getPlayer().getPlayerWidth() / 2 - MissileCenter.getMissileCenter().getMissile().getWidth() / 2;
+				int yy = y + PlayerCenter.getPlayerCenter().getPlayer().getPlayerHeight() / 2 - MissileCenter.getMissileCenter().getMissile().getHeight() / 2; 
+				missile = MissileCenter.getMissileCenter().getMissileXY(missile,xx, yy);
+				missileList.add((Image) missile);
 			}else if(PlayerCenter.getPlayerCenter().getType().equals("PlayerU")) { 
-				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); 
-				missileList.add(missileImage);
+				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); // MissileCenter클래스 String타입 type변수에 PlayerL에 맞는 미사일 이름 대입
+				int xx = x + PlayerCenter.getPlayerCenter().getPlayer().getPlayerWidth() / 2 - MissileCenter.getMissileCenter().getMissile().getWidth() / 2;
+				int yy = y + PlayerCenter.getPlayerCenter().getPlayer().getPlayerHeight() / 2 - MissileCenter.getMissileCenter().getMissile().getHeight() / 2; 
+				missile = MissileCenter.getMissileCenter().getMissileXY(missile,xx, yy);
+				missileList.add((Image) missile);
 			}else if(PlayerCenter.getPlayerCenter().getType().equals("PlayerD")) { 
-				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); 
-				missileList.add(missileImage);
+				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); // MissileCenter클래스 String타입 type변수에 PlayerL에 맞는 미사일 이름 대입
+				int xx = x + PlayerCenter.getPlayerCenter().getPlayer().getPlayerWidth() / 2 - MissileCenter.getMissileCenter().getMissile().getWidth() / 2;
+				int yy = y + PlayerCenter.getPlayerCenter().getPlayer().getPlayerHeight() / 2 - MissileCenter.getMissileCenter().getMissile().getHeight() / 2; 
+				missile = MissileCenter.getMissileCenter().getMissileXY(missile,xx, yy);
+				missileList.add((Image) missile);
 			}else if(PlayerCenter.getPlayerCenter().getType().equals("PlayerLD")) { 
-				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); 
-				missileList.add(missileImage);
+				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); // MissileCenter클래스 String타입 type변수에 PlayerL에 맞는 미사일 이름 대입
+				int xx = x + PlayerCenter.getPlayerCenter().getPlayer().getPlayerWidth() / 2 - MissileCenter.getMissileCenter().getMissile().getWidth() / 2;
+				int yy = y + PlayerCenter.getPlayerCenter().getPlayer().getPlayerHeight() / 2 - MissileCenter.getMissileCenter().getMissile().getHeight() / 2; 
+				missile = MissileCenter.getMissileCenter().getMissileXY(missile,xx, yy);
+				missileList.add((Image) missile);
 			}else if(PlayerCenter.getPlayerCenter().getType().equals("PlayerLU")) { 
-				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); 
-				missileList.add(missileImage);
+				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); // MissileCenter클래스 String타입 type변수에 PlayerL에 맞는 미사일 이름 대입
+				int xx = x + PlayerCenter.getPlayerCenter().getPlayer().getPlayerWidth() / 2 - MissileCenter.getMissileCenter().getMissile().getWidth() / 2;
+				int yy = y + PlayerCenter.getPlayerCenter().getPlayer().getPlayerHeight() / 2 - MissileCenter.getMissileCenter().getMissile().getHeight() / 2; 
+				missile = MissileCenter.getMissileCenter().getMissileXY(missile,xx, yy);
+				missileList.add((Image) missile);
 			}else if(PlayerCenter.getPlayerCenter().getType().equals("PlayerRU")) { 
-				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); 
-				missileList.add(missileImage);
+				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); // MissileCenter클래스 String타입 type변수에 PlayerL에 맞는 미사일 이름 대입
+				int xx = x + PlayerCenter.getPlayerCenter().getPlayer().getPlayerWidth() / 2 - MissileCenter.getMissileCenter().getMissile().getWidth() / 2;
+				int yy = y + PlayerCenter.getPlayerCenter().getPlayer().getPlayerHeight() / 2 - MissileCenter.getMissileCenter().getMissile().getHeight() / 2; 
+				missile = MissileCenter.getMissileCenter().getMissileXY(missile,xx, yy);
+				missileList.add((Image) missile);
 			}else if(PlayerCenter.getPlayerCenter().getType().equals("PlayerRD")) { 
-				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); 
-				missileList.add(missileImage);
+				missileImage = MissileCenter.getMissileCenter().getMissile().getImage(); // MissileCenter클래스 String타입 type변수에 PlayerL에 맞는 미사일 이름 대입
+				int xx = x + PlayerCenter.getPlayerCenter().getPlayer().getPlayerWidth() / 2 - MissileCenter.getMissileCenter().getMissile().getWidth() / 2;
+				int yy = y + PlayerCenter.getPlayerCenter().getPlayer().getPlayerHeight() / 2 - MissileCenter.getMissileCenter().getMissile().getHeight() / 2; 
+				missile = MissileCenter.getMissileCenter().getMissileXY(missile,xx, yy);
+				missileList.add((Image) missile);
 			}
 		}
 	}
@@ -349,16 +370,16 @@ public class GameFrame extends JFrame implements KeyListener, Runnable {
 				x = 710;
 				if(y >= 710) {
 					y = 710;
-					PlayerCenter.getPlayerCenter().setType("PlayerDU");
-					MissileCenter.getMissileCenter().setPlayertype("PlayerDU");
+					PlayerCenter.getPlayerCenter().setType("PlayerRD");
+					MissileCenter.getMissileCenter().setPlayertype("PlayerRD");
 					player = PlayerCenter.getPlayerCenter().getPlayer().getPlayer();
 					playerList.add(player);
 				}
 				x += 5;
 				y += 5;
 			}else {
-				PlayerCenter.getPlayerCenter().setType("PlayerDU");
-				MissileCenter.getMissileCenter().setPlayertype("PlayerDU");
+				PlayerCenter.getPlayerCenter().setType("PlayerRD");
+				MissileCenter.getMissileCenter().setPlayertype("PlayerRD");
 				player = PlayerCenter.getPlayerCenter().getPlayer().getPlayer();
 				playerList.add(player);
 				x += 5;
