@@ -13,10 +13,6 @@ public class PlayerOneLD implements Player{
 	
 	private Image playerLD = new ImageIcon("images/좌측하단대각.png").getImage(); // 우측면 캐릭터
 	
-	private static PlayerOneLD playeroneLD = new PlayerOneLD();
-	public static PlayerOneLD getPlayerOneLD() {
-		return playeroneLD;
-	}
 	@Override
 	public Image getPlayer() {
 		return playerLD;

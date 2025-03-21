@@ -13,10 +13,6 @@ public class PlayerOneRight implements Player{
 	
 	private Image playerR = new ImageIcon("images/우측.png").getImage(); // 우측면 캐릭터
 	
-	private static PlayerOneRight playeroneright = new PlayerOneRight();
-	public static PlayerOneRight getPlayerOneRight() {
-		return playeroneright;
-	}
 	
 	public PlayerOneRight() {
 	}

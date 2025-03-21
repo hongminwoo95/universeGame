@@ -6,17 +6,19 @@ import java.awt.Point;
 import javax.swing.ImageIcon;
 
 public class MissileOneDown implements Missile{
-	private Image missileOne = new ImageIcon("images/미사일하단.png").getImage();
+	
+	private Image missileDown = new ImageIcon("images/미사일하단.png").getImage();
 	public Point bullet; // 총알에 x,y좌표 설정 하기위한 변수
 	
-	public MissileOneDown(int x, int y) { //bullet에 x,y축 포인트주기
+	public Point MissileOneDown(int x, int y) {
 		bullet = new Point(x,y);
+		return bullet;
 	}
 	public void move() {
 		bullet.y += 10;
 	}
 	public Image getImage() {
-		return missileOne;
+		return missileDown;
 	}
 	public int getBulletX() {
 		return bullet.x;
@@ -25,9 +27,9 @@ public class MissileOneDown implements Missile{
 		return bullet.y;
 	}
 	public int getWidth() {
-		return missileOne.getWidth(null);
+		return missileDown.getWidth(null);
 	}
 	public int getHeight() {
-		return missileOne.getHeight(null);
+		return missileDown.getHeight(null);
 	}
 }

@@ -8,42 +8,46 @@ public class MissileCenter {
 	public static MissileCenter getMissileCenter() {
 		return missilecenter;
 	}
-	private String type; // 미사일 타입
+	private String playertype; // 플레이어 타입
 	
-	public void setType(String type) {
-		this.type = type;
+	
+	public String getPlayertype() {
+		return playertype;
 	}
-	
-	
-	
-	
-	public Missile getMissileImage() { // 미사일 이미지 가져오기
-		Missile missile;
-		if (type.equals("미사일좌측")) {
-			missile = new getImage;
+	public void setPlayertype(String playertype) {
+		playertype = playertype;
+	}
+
+
+	public Missile getMissile() { // 미사일 이미지 가져오기
+		Missile missile = null;
+		if (playertype.equals("PlayerL")) { // 플레이어 방향이 좌측일때
+			missile = new MissileOneLeft(); // 좌측미사일 객체 생성
+		}else if (playertype.equals("PlayerR")) {
+			missile = new MissileOneRight();
+		}else if (playertype.equals("PlayerU")) {
+			missile = new MissileOneUp();
+		}else if (playertype.equals("PlayerD")) {
+			missile = new MissileOneDown();
+		}else if (playertype.equals("PlayerLU")) {
+			missile = new MissileOneLU();
+		}else if (playertype.equals("PlayerLD")) {
+			missile = new MissileOneLD();
+		}else if (playertype.equals("PlayerRU")) {
+			missile = new MissileOneRU();
+		}else if (playertype.equals("PlayerRD")) {
+			missile = new MissileOneRD();
 		}
-		
-//		
-//		
-//		
-//		return null;
-//		
-//	}
-//	public Missile getMissile(int x, int y) { // GameFrame 클래스 directionProcess메서드참조
-//		if (type.equals("미사일좌측")) { // 조건일때
-//			return new MissileOneLeft(x,y); // MissileOneLeft x,y값을 가진 객체 생성
-//		}else if (type.equals("playerR")) {
-//			return new MissileOneRight(x,y);
-//		}else if (type.equals("playerU")) {
-//			return new MissileOneUp(x,y);
-//		}else if (type.equals("playerD")) {
-//			return new MissileOneDown(x,y);
-//		}
-//		return null;
-//	}
-//	public Missile makeMissile(Missile missile, int x, int y) {
-//		if(missile instanceof MissileOneUp) {
-//			return new MissileOneUp(x,y);
+		return missile;
+	}	
+	public Missile makeMissile(Missile missile, int xx, int yy) {
+		if(playertype.equals("PlayerL")) {
+			return (Missile) new MissileOneLeft().MissileOneL(missile, xx, yy);
+		}
+		return missile;
+			
+			
+			
 //		}else if (missile instanceof MissileOneDown) {
 //			return new MissileOneDown(x,y);
 //		}else if (missile instanceof MissileOneDown) {
@@ -55,5 +59,7 @@ public class MissileCenter {
 //		}else {
 //			return null;
 //		}
+//		return missile;
 //	}
+	}
 }

@@ -14,10 +14,7 @@ public class PlayerOneDown implements Player{ // 캐릭터 하단
 	
 	private Image playerD = new ImageIcon("images/하단.png").getImage(); // 좌측면 캐릭터
 	
-	private static PlayerOneDown playeronedown = new PlayerOneDown();
-	public static PlayerOneDown getPlayerOneDown() {
-		return playeronedown;
-	}
+	
 	public PlayerOneDown() {
 	}
 	@Override

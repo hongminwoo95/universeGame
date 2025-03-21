@@ -12,10 +12,6 @@ public class PlayerOneUp implements Player{
 	
 	private Image playerU = new ImageIcon("images/상단.png").getImage();
 	
-	private static PlayerOneUp playeroneup = new PlayerOneUp();
-	public static PlayerOneUp getPlayerOneUp() {
-		return playeroneup;
-	}
 	
 	public PlayerOneUp() {
 	}

@@ -13,10 +13,6 @@ public class PlayerOneLU implements Player{
 	
 	private Image playerLU = new ImageIcon("images/좌측상단대각.png").getImage(); // 우측면 캐릭터
 	
-	private static PlayerOneLU playeroneLU = new PlayerOneLU();
-	public static PlayerOneLU getPlayerOneLU() {
-		return playeroneLU;
-	}
 	@Override
 	public Image getPlayer() {
 		return playerLU;

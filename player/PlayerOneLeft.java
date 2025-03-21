@@ -13,11 +13,8 @@ public class PlayerOneLeft implements Player{
 	
 	private Image playerL = new ImageIcon("images/좌측.png").getImage(); // 좌측면 캐릭터
 	
-	private static PlayerOneLeft Playeroneleft = new PlayerOneLeft();
-	public static PlayerOneLeft getPlayerOneLeft() {
-		return Playeroneleft;
-	}
 	public PlayerOneLeft() {
+		
 	}
 	@Override
 	public Image getPlayer() {
