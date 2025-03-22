@@ -11,10 +11,8 @@ public class MissileOneLeft implements Missile{
 	public Point bullet ; // 총알에 x,y좌표 설정 하기위한 변수
 	
 	
-	
-	public Point MissileOneL(int x, int y) {
+	public MissileOneLeft(int x, int y) {
 		bullet = new Point(x,y);
-		return bullet;
 	}
 	public void move() {
 		bullet.x -= 10;

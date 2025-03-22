@@ -11,9 +11,8 @@ public class MissileOneLD implements Missile{
 	public Point bullet; // 총알에 x,y좌표 설정 하기위한 변수
 	
 
-	public Point MissileOneUp(int x, int y) {
+	public MissileOneLD(int x, int y) {
 		bullet = new Point(x,y);
-		return bullet;
 	}
 	public void move() {
 		bullet.y += 10;

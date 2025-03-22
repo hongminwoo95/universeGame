@@ -1,8 +1,8 @@
-package spaceship;
+package enemy;
 
 import java.awt.Image;
 
-public interface Spaceship {
+public interface Enemy {
 	public Image getImage(); //이미지
 	public void getmove(); // 움직임
 	public int getspaceshipX(); // 우주선 x축
