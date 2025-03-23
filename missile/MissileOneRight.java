@@ -7,7 +7,7 @@ import javax.swing.ImageIcon;
 
 public class MissileOneRight implements Missile{
 	
-	private Image missileOne = new ImageIcon("images/미사일우측.png").getImage();
+	private Image missileOne = new ImageIcon("images/ball.png").getImage();
 	public Point bullet; // 총알에 x,y좌표 설정 하기위한 변수
 	
 	

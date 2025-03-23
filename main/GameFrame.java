@@ -13,14 +13,21 @@ import javax.swing.JFrame;
 
 import Player.PlayerCenter;
 import enemy.Enemy;
+import enemy.EnemyCenter;
 import missile.Missile;
 import missile.MissileCenter;
 
-public class GameFrame extends JFrame implements KeyListener, Runnable {
+public class GameFrame extends JFrame implements KeyListener {
 
+	private static GameFrame gameframe = new GameFrame();
+	public static GameFrame getGameFrame() {
+		return gameframe;
+	}
 	
 	private int f_width = 800; // 프레임 너비설정
 	private int f_height = 800; // 프레임 높이 설정
+	
+
 	private Vector<Missile> missileList = new Vector(); // 미사일 이미지 리스트
 	private Vector<Image> playerList = new Vector(); // 플레이어 이미지 리스트
 	private Vector<Enemy> enemyList = new Vector(); // 적기 이미지 리스트
@@ -30,32 +37,44 @@ public class GameFrame extends JFrame implements KeyListener, Runnable {
 	boolean keyDown = false; // 아래키
 	boolean keyLeft = false; // 왼쪽
 	boolean keyRight = false; // 오른쪽
-	boolean keySpace = false; // 스페이스 (총탄발사)
+	boolean keySpace = false; // 스페이스 (미사일 발사)
+	boolean flag = true; // 스레드 종료,시작 설정
 	
 	// 참조형
 	private Missile missile; // 미사일 인터페이스 참조변수
+	private Enemy enemy; // 적기 인터페이스 참조변수
 	
-	private Image player; //캐릭터 이미지
-	private Image missileImage; // 미사일 이미지
-	
+	private Image player; // 현재 캐릭터 이미지
+	private Image missileImage; // 현재 미사일 이미지
+	private Image enemyOneImage; // 적기생성 이미지
 	// 배경 이미지
 	private Image background1; // 화염행성 배경
 	private Image background2; // 얼음행성 배경
 	
-	private int x = 100; // 게임시작시 player 나타날 x좌표
-	private int y = 100; // 게임시작시 player 나타날 y좌표
+	private int x = 350; // 게임시작시 최초 player이미지 생성할 x좌표
+	private int y = 300; // 게임시작시 최초 player이미지 생성할 y좌표
+	private int enemyX = 0; // 게임시작시 최초 enemy이미지 생설할 x좌표
+	private int enemyY = 0; // 게임시작시 최초 enemy이미지 생설할 y좌표
+	// private int cnt; // 남은생명 
+	private int timer; // 1초마다 1개씩 올라감
 	
 	private Image buffImage; // 더블 버퍼링용 이미지
 	private Graphics buffg; // 더블 버퍼링용 그리기
 
 	private Toolkit tk = Toolkit.getDefaultToolkit(); // 이미지를 불러오기 위한 톨킷
+	
+	// 각 항목별 중앙센터 싱글톤 객체 주소
 	private PlayerCenter playercenter = PlayerCenter.getPlayerCenter(); // PlayerCenter 객체주소
 	private MissileCenter missilecenter = MissileCenter.getMissileCenter(); // MissileCenter 객체주소
-	Thread th; // 스레드
-	Thread KeySetting; // 키셋팅 스레드
-//	Thread keyDownTh; // keyDown 스레드
-//	Thread keyLeftTh; // key Left 스레드
+	private EnemyCenter enemycenter = EnemyCenter.getEnemyCenter(); // EnemyCenter 객체주소
+	// System.out.println(Thread.activeCount()); <-- 스레드가 몇개 실행되었는지 알수있는 코드
 	
+	Thread KeySettingTh; // 키셋팅 스레드
+	Thread timeTh; // timer 스레드 (1초단위용)
+	Thread enemyTh; // 적기 생성 스레드
+	Thread missileOneTh; // Player 미사일 발사용 스레드
+			
+			
 	GameFrame() {
 		init(); // 캐릭터 및 몬스터 좌표 설정
 		start(); // 시작메서드
@@ -72,16 +91,15 @@ public class GameFrame extends JFrame implements KeyListener, Runnable {
 	}
 	public void init() { // 각종 이미지 객체 생성
 		background1 = new ImageIcon("images/얼음행성.png").getImage(); // 맵 이미지 생성
-		player = new ImageIcon("images/중앙.png").getImage();
+		player = new ImageIcon("images/중앙.png").getImage(); // player생성후 키보드 이벤트 발생전 이미지 -> 키이벤트 발생시 이미지변경
 	}
 	public void start() { // 시작 메서드
-		th = new Thread(this); // 스레드 생성
-		th.start(); // 스레드 실행
-	
-	
-	
+		KeySettingTh(); // player 키보드 이벤트 발생 관련 스레드
+		missileOneTh(); // missile 발사용 스레드 시작
+		timerTh(); // 1초 타이머 측정용 스레드
+		//enemyTh(); // 적기 생성용 스레드
 	}
-	public void paint(Graphics g) { // 
+	public void paint(Graphics g) { // 버퍼 준비 과정 작업
 		buffImage = createImage(f_width, f_height);
 		// ↑ createImage <- 지정된 바이트 배열에 저장된 이미지를 지정된 오프셋과 길이로 디코딩하는 이미지 생성 (버퍼)
 		// 더블버퍼링 버퍼 크기를 화면 크기와 같게 설정
@@ -91,109 +109,150 @@ public class GameFrame extends JFrame implements KeyListener, Runnable {
 		update(g);
 
 	}
-	
-	public void update(Graphics g) { // 이미지 생성
+	public void update(Graphics g) { // 준비된 버퍼에 이미지 입히는 작업
 		Draw_background();// 배경그림 가져옴
-		Draw_PlayerM();
+		Draw_PlayerM(); // 플레이어 시작전 중앙 이미지
 		Draw_Player(); // 플레이어 그림 가져옴
 		Draw_missile(); // 미사일 그림 가져옴
+		Draw_enemyOne(); // 우측적기 그림 가져옴
 		g.drawImage(buffImage, 0, 0, this); // 화면 버퍼에 그린 그림을 버퍼에 덮어씌우기 (아래에서 그린그림 찍어내기)
 	}
 	
-	public void Draw_background() { // 이미지 그릴부분
+	public void Draw_background() { // 첫 배경 그리기
 		buffg.drawImage(background1, 0, 0, f_width, f_height, this); // 프레임에
 
 	}
-	public void Draw_PlayerM() { // 캐릭터 초기 중앙값
+	public void Draw_PlayerM() { // 캐릭터 초기 중앙값 그리기
 		buffg.drawImage(player, x, y, 100, 100, this); // 프레임에
 	}
 	
-	public void Draw_Player() {
+	public void Draw_Player() { // player 그리기
 		for (int i=0; i<playerList.size(); i++) {
 			player = playerList.get(i);
-			buffg.drawImage(player, x, y, 100, 100, this);
+			buffg.drawImage(player, x, y, 100, 100, this); // 프레임에 player에 저장된 변환되는 이미지를 x=100, y=100 좌표에 110x110해상도로 그려넣습니다.
 			if(i < playerList.size()-1)
 				playerList.remove(i);
 		}
-		//buffg.drawImage(player, x, y, 110, 110, this);
-		
-		// 프레임에 player에 저장된 변환되는 이미지를 x=100, y=100 좌표에 110x110해상도로 그려넣습니다.
-
 	}
-	
 	public void Draw_missile() { // 미사일 이미지 출력
-		for (int i=0; i<missileList.size(); ++i) {
-			missile = missileList.get(i);
-			buffg.drawImage(missileImage, missile.getBulletX(), missile.getBulletY(), this);
-			missile.move();
-			if (missile.getBulletX()>=710 && missile.getBulletX()<=-20 && 
-					missile.getBulletY()>=710 && missile.getBulletY()<=10) {
-				missileList.remove(i);
+		for (int i=0; i<missileList.size(); i++) {
+			missile = missileList.get(i); // SpaceProcess에서 add된 missile을 missile변수에 대입
+			buffg.drawImage(missileImage, missile.getBulletX(), missile.getBulletY(), this); // 버퍼에 (이미지,x,y) 이미지 그려넣기
+			missile.move(); // missile x,y축 기준 각미사일별 +,- 속도 기입한 수치나 방향으로 이동
+			if (missile.getBulletX()>=710 && missile.getBulletX()<=-20 &&  // 미사일좌표가 JFram 범위를 넘어갈시
+					missile.getBulletY()>=710 && missile.getBulletY()<=10) { // 미사일좌표가 JFram 범위를 넘어갈시
+				missileList.remove(i); // 해당 미사일객체 삭제
 			}
 		}
 	}
-	
-	
-	
-	
-	
-	
-	@Override
-	public void run() { // 스레드 무한으로 실행시킬 메서드
-		try { // 스레드 예외처리
-			while (true) {
-				SpaceProcess(); // 미사일 키보드 이벤트
-				KeyProcess(); //키보드 이벤트
-				repaint(); // 갱신된 x,y값으로 이미지 새로 그리기
-				th.sleep(20); // CPU 사용량을 줄이기 위해 잠시 대기
+	//private Image enemyOneImage; // 적기생성 이미지
+	//private Enemy enemy; // 적기 인터페이스 참조변수
+    //private int f_width = 800; // 프레임 너비설정
+    //private int f_height = 800; // 프레임 높이 설정
+
+	public void Draw_enemyOne() {
+		for (int i=0; i<enemyList.size(); i++) {
+			enemy = enemyList.get(i); // enemy의 x,y좌표가 있는 객체를 enemy에 대입
+			buffg.drawImage(enemyOneImage, x+f_width, enemyY, 100 , 100, this); // 버퍼에 (이미지,x,y) 이미지 그려넣기
+			enemy.getmove(); // 해당 enemy객체 move설정값 만큼 이동
+			if (enemy.getenemyX()<=-20) { // enemy객체의 x값이 -20보다 작아 화면을 넘어갈시
+				enemyList.remove(i); // 해당객체 삭제
 			}
-		} catch (Exception e) {
 		}
 	}
-	
-	
-	public void keysetting() {
-		KeySetting = new Thred(newRunnable(){
-			public void run() {
-				
-			}
-		});
-		KeySetting.start();
-	}
-	
-	
-	public void KeySetting1() { // 키셋팅 스레드
-		KeySetting = new Thread(new Runnable() {
+	public void enemyTh() { // 적기 생성용 스레드
+		enemyTh = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				while (true) {
-					KeyProcess();
-					missileProcess();
-					repaint();
+				while (flag) {
 					try {
-						Thread.sleep(20);
+						MakeEnemyR(); // 적1 생성 메서드
+						repaint(); // 갱신된 x,y값으로 이미지 새로 그리기
+						Thread.sleep(10); // 약간의 딜레이를 주어 cpu의 과부하를 줄여줌
+					}catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		enemyTh.start();
+	}
+	public void MakeEnemyR() { // 적1 생성 메서드
+		enemy = enemycenter.getEnemyOne(x, y); // enemy에  Enemy 타입의 EnemyRight객체주소 대입
+		enemyOneImage = enemy.getImage(); // enemyOneImage에 이미지 대입
+		System.out.println("Test11");
+		int xx = enemy.getenemyWidth() / 2; // enemy 이미지 너비의 중앙
+		int yy = enemy.getenemyHeight() / 2; // enemy 이미지 높이의 중앙
+		enemy = enemycenter.getEnemyXY(enemy, xx, yy);
+		enemyList.add(enemy);
+	}
+	
+	
+	
+	
+	public void timerTh() { // 타이머 스레드
+		timeTh = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while(flag) { // 멤버변수 flag가 false일때 까지
+					try {
+						Thread.sleep(1000); // 1000밀리세컨드 마다
+						timer++; // 1초마다 timer를 1개씩 올려줌
+						System.out.println("게임진행시간 "+timer+"초");
+						enemycenter.setTimer(timer); // EnemyCenter에도 타이머를 적용시킴
+					}catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		timeTh.start(); // timeTh스레드 시작
+	}
+	public void missileOneTh() { // 미사일 	발사용 스레드
+		missileOneTh = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while (flag) {
+					try {
+						SpaceProcess(); // 미사일 발사 키보드 이벤트
+						repaint(); // 갱신된 x,y값으로 이미지 새로 그리기
+						Thread.sleep(10); // 약간의 딜레이를 주어 cpu의 과부하를 줄여줌
+					}catch(InterruptedException e) {
+						e.printStackTrace();
+					}
+					
+				}
+			}
+		});
+		missileOneTh.start(); // 스레드 시작
+	}
+	public void KeySettingTh() { // 키셋팅 스레드
+		KeySettingTh = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while (flag) { // while문을 사용하여 실행순서 관계없이 계속 진행되도록 
+					try {
+						KeyProcess(); // player 움직임 키보드 이벤트
+						repaint(); // 갱신된 x,y값으로 이미지 새로 그리기
+						Thread.sleep(20); // 약간의 딜레이를 주어 cpu의 과부하를 줄여줌
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
 
 			}
 		});
-		KeySetting.start();
+		KeySettingTh.start(); // 스레드 시작
 	}
-	
-	
-	
 	public void SpaceProcess() { // 미사일 이미지 가져오기
 		if(keySpace) { // 스페이스키를 눌렀을때
 			missile = missilecenter.getMissile(x, y); // missile에 좌표값 넣기
-			missileImage = missile.getImage();
-			int xx = x + player.getWidth(null) / 2 - missileImage.getWidth(null) / 2;
-			int yy = y + player.getHeight(null) / 2 - missileImage.getHeight(null) / 2;
-			missile = missilecenter.getMissileXY(missile, xx, yy);
-			missileList.add(missile);
-			keySpace = false;
+			missileImage = missile.getImage(); // missileImage 변수에 Image 넣기
+			int xx = x + player.getWidth(null) / 2 - missileImage.getWidth(null) / 2; // Player너비 중앙 - Missile너비 중앙을 x좌표에
+			int yy = y + player.getHeight(null) / 2 - missileImage.getHeight(null) / 2; // Player높이 중앙 - Missile높이 중앙을 y좌표에
+			missile = missilecenter.getMissileXY(missile, xx, yy); // missile에 missile좌표와 너비,높이 중앙값 대입
+			missileList.add(missile); // missileList에 좌표,너비,높이 올리기
+			keySpace = false; // missileList에 add될때 발사 하지않기 true시 리스트에 add할때마다 발사 
 		}
 	}
 	@Override
