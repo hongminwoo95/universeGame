@@ -19,7 +19,7 @@ public class EnemyRight implements Enemy{
 	}
 	@Override
 	public void getmove() {
-		body.x -=10;
+		body.x -=1;
 	}
 	@Override
 	public int getenemyX() {
