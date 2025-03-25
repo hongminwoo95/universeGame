@@ -1,6 +1,5 @@
 package enemy;
 
-import main.GameFrame;
 
 public class EnemyCenter {
 
@@ -21,12 +20,25 @@ public class EnemyCenter {
 		if (location.equals("MakeEnemyR")) {
 			enemytemp = new EnemyRight(x,y); // EnemyRight 객체주소 생성
 			return enemytemp;
+		}if (location.equals("MakeEnemyL")) {
+			enemytemp = new EnemyLeft(x,y); // EnemyLeft 객체주소 생성
+			return enemytemp;
+		}if (location.equals("MakeEnemyU")) {
+			enemytemp = new EnemyUp(x,y); // EnemyLeft 객체주소 생성
+			return enemytemp;
 		}
+		
 		return null;
 	}
-	public Enemy getEnemyXY(Enemy enemy,int x, int y) {
+	public Enemy setEnemyXY(Enemy enemy,int x, int y) {
 		if (enemy instanceof EnemyRight) {
 			return new EnemyRight(x,y);
+		}
+		if (enemy instanceof EnemyLeft) {
+			return new EnemyLeft(x,y);
+		}
+		if (enemy instanceof EnemyUp) {
+			return new EnemyUp(x,y);
 		}
 		return null;
 	}

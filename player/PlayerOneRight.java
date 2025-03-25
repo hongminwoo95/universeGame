@@ -12,10 +12,7 @@ public class PlayerOneRight implements Player{
 	private Point playerimage; // Point참조한 playerImage 변수선언
 	
 	private Image playerR = new ImageIcon("images/우측.png").getImage(); // 우측면 캐릭터
-	
-	
-	public PlayerOneRight() {
-	}
+
 	@Override
 	public Image getPlayer() {
 		return playerR;

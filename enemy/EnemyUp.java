@@ -5,12 +5,12 @@ import java.awt.Point;
 
 import javax.swing.ImageIcon;
 
-public class EnemyRight implements Enemy{
+public class EnemyUp implements Enemy{
 	private Image EnemyOne = new ImageIcon("images/적기2.png").getImage();
 	private Point body; // x,y좌표를 설정하기위한 변수
 	
 	
-	public EnemyRight(int x, int y) { //SpaceshipGreen에 x,y좌표 설정
+	public EnemyUp(int x, int y) { //SpaceshipGreen에 x,y좌표 설정
 		body = new Point(x,y);
 	}
 	@Override
@@ -19,7 +19,7 @@ public class EnemyRight implements Enemy{
 	}
 	@Override
 	public void getmove() {
-		body.x -=1;
+		body.y +=1;
 	}
 	@Override
 	public int getenemyX() {

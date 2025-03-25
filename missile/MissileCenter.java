@@ -7,12 +7,7 @@ public class MissileCenter {
 		return missilecenter;
 	}
 	private String playertype; // 플레이어 타입
-	private String type;
 	
-	
-	public String getPlayertype() {
-		return playertype;
-	}
 	public void setPlayertype(String playertype) {
 		this.playertype = playertype;
 	}

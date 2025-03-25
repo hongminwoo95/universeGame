@@ -12,6 +12,7 @@ import java.util.Vector;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
+import Player.Player;
 import Player.PlayerCenter;
 import enemy.Enemy;
 import enemy.EnemyCenter;
@@ -24,35 +25,43 @@ public class GameFrame extends JFrame implements KeyListener {
 	private int f_height = 800; // 프레임 높이 설정
 	
 	private ArrayList<Missile> missileList = new ArrayList(); // 미사일 이미지 리스트
-	private Vector<Image> playerList = new Vector(); // 플레이어 이미지 리스트
-	private Vector<Enemy> enemyList = new Vector(); // 적기 이미지 리스트
+	private Vector<Player> playerList = new Vector(); // 플레이어 이미지 리스트
+	private Vector<Enemy> enemyListR = new Vector(); // 적기 우측 이미지 리스트
+	private Vector<Enemy> enemyListL = new Vector(); // 적기 좌측 이미지 리스트
+	private Vector<Enemy> enemyListU = new Vector(); // 적기 상단 이미지 리스트
+	private Vector<Enemy> enemyListD = new Vector(); // 적기 상단 이미지 리스트
 	
 	// 키보드셋팅
 	boolean keyUp = false; // 윗키
 	boolean keyDown = false; // 아래키
 	boolean keyLeft = false; // 왼쪽
 	boolean keyRight = false; // 오른쪽
-	boolean keySpace = false; // 스페이스 (미사일 발사)
+	boolean keyA = false; // 스페이스 (미사일 발사)
 	boolean flagTh = true; // 전체 스레드 종료,시작 설정
-	boolean makeenemyTh = true; // 몬스터 생성 스레드 종료,시작 설정
+//	boolean makeenemyTh = true; // 몬스터 생성 스레드 종료,시작 설정
 	
 	// 참조형
 	private Missile missile; // 미사일 인터페이스 참조변수
 	private Enemy enemy; // 적기 인터페이스 참조변수
+	private Player player; // 플레이어 인터페이스
 	
-	private Image player; // 현재 캐릭터 이미지
+	private Image playerImage; // 현재 캐릭터 이미지
 	private Image missileImage; // 현재 미사일 이미지
-	private Image enemyOneImage; // 적기생성 이미지
+	private Image enemyOneImageR; // 우측 적기생성 이미지
+	private Image enemyOneImageL; // 좌측 적기생성 이미지
+	private Image enemyOneImageU; // 상단 적기생성 이미지
+	
 	// 배경 이미지
 	private Image background1; // 화염행성 배경
 	private Image background2; // 얼음행성 배경
 	
+	private String type; // player방향 type
 	private int x = 350; // 게임시작시 최초 player이미지 생성할 x좌표
 	private int y = 300; // 게임시작시 최초 player이미지 생성할 y좌표
 	private int enemyX = 0; // 게임시작시 최초 enemy이미지 생설할 x좌표
 	private int enemyY = 0; // 게임시작시 최초 enemy이미지 생설할 y좌표
-	// private int cnt; // 남은생명 
-	private int timer; // 1초마다 1개씩 올라감
+	private int cnt = 10; // 목숨 10개
+//	private int timer; // 1초마다 1개씩 올라감
 	
 	private Image buffImage; // 더블 버퍼링용 이미지
 	private Graphics buffg; // 더블 버퍼링용 그리기
@@ -68,9 +77,10 @@ public class GameFrame extends JFrame implements KeyListener {
 	Thread KeySettingTh; // 키셋팅 스레드
 	Thread enemyThR; // 우측 적기 생성 스레드
 	Thread enemyThL; // 좌측 적기 생성 스레드
+	Thread enemyThU; // 상단 적기 생성 스레드
+	Thread enemyThD; // 하단 적기 생성 스레드
 	Thread missileOneTh; // Player 미사일 발사용 스레드
-			
-			
+	
 	GameFrame() {
 		init(); // 캐릭터 및 몬스터 좌표 설정
 		start(); // 시작메서드
@@ -87,12 +97,14 @@ public class GameFrame extends JFrame implements KeyListener {
 	}
 	public void init() { // 각종 이미지 객체 생성
 		background1 = new ImageIcon("images/얼음행성.png").getImage(); // 맵 이미지 생성
-		player = new ImageIcon("images/중앙.png").getImage(); // player생성후 키보드 이벤트 발생전 이미지 -> 키이벤트 발생시 이미지변경
+		playerImage = new ImageIcon("images/중앙.png").getImage(); // player생성후 키보드 이벤트 발생전 이미지 -> 키이벤트 발생시 이미지변경
 	}
 	public void start() { // 시작 메서드
 		KeySettingTh(); // player 키보드 이벤트 발생 관련 스레드
+		enemyThR(); // 적기 생성용 스레드
+		enemyThL(); 
+		enemyThU();
 		missileOneTh(); // missile 발사용 스레드 시작
-		enemyTh(); // 적기 생성용 스레드
 	}
 	public void paint(Graphics g) { // 버퍼 준비 과정 작업
 		buffImage = createImage(f_width, f_height); 
@@ -107,33 +119,58 @@ public class GameFrame extends JFrame implements KeyListener {
 		Draw_background();// 배경그림 가져옴
 		Draw_PlayerM(); // 플레이어 시작전 중앙 이미지
 		Draw_Player(); // 플레이어 그림 가져옴
-		Draw_missile(); // 미사일 그림 가져옴
-		Draw_enemyOne(); // 우측적기 그림 가져옴
+		Draw_missileR(); // 미사일 그림 가져옴
+		Draw_missileL(); // 미사일 그림 가져옴
+		Draw_missileU(); // 
+		Draw_enemyOneR(); // 우측적기 그림 가져옴
+		Draw_enemyOneL(); // 우측적기 그림 가져옴
+		Draw_enemyOneU(); // 상단적기 그림 가져옴
 		g.drawImage(buffImage, 0, 0, this); // 버퍼에 그린 그림을 버퍼에 덮어씌우기 (아래에서 그린그림 찍어내기)
 	}
 	public void Draw_background() { // 첫 배경 그리기
 		buffg.drawImage(background1, 0, 0, f_width, f_height, this); // 프레임에
 	}
 	public void Draw_PlayerM() { // 캐릭터 초기 중앙값 그리기
-		buffg.drawImage(player, x, y, 100, 100, this); // 프레임에
+		buffg.drawImage(playerImage, x, y, 100, 100, this); // 프레임에
 	}
-	public void Draw_Player() { // player 그리기
-		for (int i=0; i<playerList.size(); i++) {
-			player = playerList.get(i);
-			buffg.drawImage(player, x, y, 100, 100, this); // 프레임에 player에 저장된 변환되는 이미지를 x=100, y=100 좌표에 100x100해상도로 그려넣습니다.
-			if(i < playerList.size()-1)
-				playerList.remove(i);
-		}
+//	public void Draw_Player() { // player 그리기
+//		for (int i=0; i<playerList.size(); i++) {
+//			playerImage = playerList.get(i);
+//			buffg.drawImage(playerImage, x, y, 100, 100, this); // 프레임에 player에 저장된 변환되는 이미지를 x=100, y=100 좌표에 100x100해상도로 그려넣습니다.
+//			if(i < playerList.size()-1)
+//				playerList.remove(i);
+//		}
+//	}
+	public void Draw_missileR() { // 미사일 이미지 출력
+			try {
+				for (int i=0; i<missileList.size(); i++) {
+				missile = missileList.get(i); // SpaceProcess에서 add된 missile을 missile변수에 대입
+				buffg.drawImage(missileImage, missile.getBulletX(), missile.getBulletY(), this); // 버퍼에 (이미지,x,y) 이미지 그려넣기
+				for(int j=0; j<enemyListR.size(); j++) {
+					enemy = enemyListR.get(j);
+					if(missileList!=null) {
+						hitenemyR(i,j,missile,enemy);
+					}
+				}
+				missile.move(); // missile x,y축 기준 각미사일별 +,- 속도 기입한 수치나 방향으로 이동
+				if (missile.getBulletX()>=710 && missile.getBulletX()<=-20 &&  // 미사일좌표가 JFram 범위를 넘어갈시
+						missile.getBulletY()>=710 && missile.getBulletY()<=10) { // 미사일좌표가 JFram 범위를 넘어갈시
+					missileList.remove(i); // 해당 미사일객체 삭제
+				}
+			}
+			}catch(Exception a) {		
+				new RuntimeException(a); 
+			}
 	}
-	public void Draw_missile() { // 미사일 이미지 출력
-		for (int i=0; i<missileList.size(); i++) {
+	public void Draw_missileL() { // 미사일 이미지 출력
+		try {
+			for (int i=0; i<missileList.size(); i++) {
 			missile = missileList.get(i); // SpaceProcess에서 add된 missile을 missile변수에 대입
 			buffg.drawImage(missileImage, missile.getBulletX(), missile.getBulletY(), this); // 버퍼에 (이미지,x,y) 이미지 그려넣기
-			for(int j=0; j<enemyList.size(); j++) {
-				enemy = enemyList.get(j);
+			for(int j=0; j<enemyListL.size(); j++) {
+				enemy = enemyListL.get(j);
 				if(missileList!=null) {
-					
-					hitenemy(i,j,missile,enemy);
+					hitenemyL(i,j,missile,enemy);
 				}
 			}
 			missile.move(); // missile x,y축 기준 각미사일별 +,- 속도 기입한 수치나 방향으로 이동
@@ -142,31 +179,198 @@ public class GameFrame extends JFrame implements KeyListener {
 				missileList.remove(i); // 해당 미사일객체 삭제
 			}
 		}
-	}
-	public void Draw_enemyOne() {
-		for (int i=0; i<enemyList.size(); i++) {
-			enemy = enemyList.get(i); // enemy의 객체주소,x,y좌표가 있는 객체를 enemy에 대입
-			buffg.drawImage(enemyOneImage, enemy.getenemyX(), enemy.getenemyY(), 45 , 31, this); // 버퍼에에 enemyImage,시작x,y좌표,해상도100x100을 이미지로 그린다
-			enemy.getmove(); // 해당 enemy객체 move설정값 만큼 이동 (버퍼에 그린 이미지와 enemy는 같은객체 주소임)
-			if (enemy.getenemyX()<=-20 && enemy.getenemyX()>=710) { // enemy객체의 x값이 -20보다 작아 화면을 넘어갈시
-				enemyList.remove(i); // 해당객체 삭제
-			}
+		}catch(Exception a) {		
+			new RuntimeException(a); 
 		}
 	}
-	public void hitenemy(int i , int j , Missile m, Enemy e) {
-		if(m.getBulletX() + m.getWidth()  >= e.getenemyX() &&
-				(m.getBulletY() + m.getHeight() >= e.getenemyY() &&
-				m.getBulletY() <= e.getenemyY() + e.getenemyHeight())) {
+	public void Draw_missileU() { // 미사일 이미지 출력
+		try {
+			for (int i=0; i<missileList.size(); i++) {
+			missile = missileList.get(i); // SpaceProcess에서 add된 missile을 missile변수에 대입
+			buffg.drawImage(missileImage, missile.getBulletX(), missile.getBulletY(), this); // 버퍼에 (이미지,x,y) 이미지 그려넣기
+			for(int j=0; j<enemyListU.size(); j++) {
+				enemy = enemyListU.get(j);
+				if(missileList!=null) {
+					hitenemyU(i,j,missile,enemy);
+				}
+			}
+			missile.move(); // missile x,y축 기준 각미사일별 +,- 속도 기입한 수치나 방향으로 이동
+			if (missile.getBulletX()>=710 && missile.getBulletX()<=-20 &&  // 미사일좌표가 JFram 범위를 넘어갈시
+					missile.getBulletY()>=710 && missile.getBulletY()<=10) { // 미사일좌표가 JFram 범위를 넘어갈시
+				missileList.remove(i); // 해당 미사일객체 삭제
+			}
+		}
+		}catch(Exception a) {		
+			new RuntimeException(a); 
+		}
+	}
+	public void Draw_enemyOneR() { // 우측 적기 이미지 출력
+		try {
+			for (int i = 0; i < enemyListR.size(); i++) {
+				enemy = enemyListR.get(i); // enemy의 객체주소,x,y좌표가 있는 객체를 enemy에 대입
+				buffg.drawImage(enemyOneImageR, enemy.getenemyX(), enemy.getenemyY(), 45, 31, this); 
+				enemy.getmove(); // 해당 enemy객체 move설정값 만큼 이동 (버퍼에 그린 이미지와 enemy는 같은객체 주소임)
+				if (enemy.getenemyX() <= -20) { // enemy객체의 x값이 -20보다 작아 화면을 넘어갈시
+					enemyListR.remove(i); // 해당객체 삭제
+				}
+				// hitPlayer(i,enemy);
+			}
+		} catch (Exception a) {
+			new RuntimeException(a);
+		}
+	}
+	public void Draw_enemyOneL() { // 좌측 적기 이미지 출력
+		try {
+			for (int i = 0; i < enemyListL.size(); i++) {
+				enemy = enemyListL.get(i); // enemy의 객체주소,x,y좌표가 있는 객체를 enemy에 대입
+				buffg.drawImage(enemyOneImageL, enemy.getenemyX(), enemy.getenemyY(), 45, 31, this); 
+				enemy.getmove();
+				if (enemy.getenemyX() >= 710) {
+					enemyListL.remove(i);
+				}
+				// hitPlayer(i,enemy);
+			}
+		} catch (Exception a) {
+			new RuntimeException(a);
+		}
+	}
+	public void Draw_enemyOneU() { // 상단 적기 이미지 출력
+		try {
+			for (int i = 0; i < enemyListU.size(); i++) {
+				enemy = enemyListU.get(i); // enemy의 객체주소,x,y좌표가 있는 객체를 enemy에 대입
+				buffg.drawImage(enemyOneImageU, enemy.getenemyX(), enemy.getenemyY(), 45, 31, this); 
+				enemy.getmove();
+				if (enemy.getenemyY() >= 710) {
+					enemyListU.remove(i);
+				}
+				hitPlayer(i,enemy);
+			}
+		} catch (Exception a) {
+			new RuntimeException(a);
+		}
+	}
+//	public void Draw_Player() { // player 그리기
+//		for (int i=0; i<playerList.size(); i++) {
+//			playerImage = playerList.get(i);
+//			buffg.drawImage(playerImage, x, y, 100, 100, this); // 프레임에 player에 저장된 변환되는 이미지를 x=100, y=100 좌표에 100x100해상도로 그려넣습니다.
+//			if(i < playerList.size()-1)
+//				playerList.remove(i);
+//		}
+//	}
+	
+	
+	
+	public void Draw_Player() { // player 그리기
+		for (int i=0; i<playerList.size(); i++) {
+			player = playerList.get(i);
+			playerImage = player.getPlayer();
+			buffg.drawImage(playerImage, x, y, 100, 100, this); // 프레임에 player에 저장된 변환되는 이미지를 x=100, y=100 좌표에 100x100해상도로 그려넣습니다.
+			if(i < playerList.size()-1)
+				playerList.remove(i);
+		}
+	}
+	public void hitPlayer(int i, Enemy e) {  // 플레이어와 적기의 충돌
+		//Player player = null; // 플레이어 너비
+		//if(this.type.equals(playercenter.getType())) { 
+			
+			
+		//	player = playercenter.getPlayerCenter().getPlayer();
+		//}
+		if( player.getPlayerY() <= e.getenemyY()+e.getenemyHeight() &&
+				player.getPlayerY()+player.getPlayerHeight() >= e.getenemyY() &&
+				player.getPlayerX()+player.getPlayerWidth() >= e.getenemyX() &&
+				player.getPlayerX() <= e.getenemyX()+e.getenemyWidth()) {
+			cnt--;
+			if(cnt==0) {
+				flagTh = false;
+			}
+			enemyListU.remove(i);
+		}
+	}
+	
+//	public void hitPlayer(int i, Enemy e) {  // 플레이어와 적기의 충돌
+//		Player player = null; // 플레이어 너비
+//		if(this.type.equals(playercenter.getType())) { 
+//			
+//			
+//			player = playercenter.getPlayerCenter().getPlayer();
+//		}
+//		if( player.getPlayerY() <= e.getenemyY()+e.getenemyHeight() &&
+//				player.getPlayerY()+player.getPlayerHeight() >= e.getenemyY() &&
+//				player.getPlayerX()+player.getPlayerWidth() >= e.getenemyX() &&
+//				player.getPlayerX() <= e.getenemyX()+e.getenemyWidth()) {
+//			cnt--;
+//			if(cnt==0) {
+//				flagTh = false;
+//			}
+//			enemyListU.remove(i);
+//		}
+//	}
+	
+//	public void Draw_missileR() { // 미사일 이미지 출력
+//		try {
+//			for (int i=0; i<missileList.size(); i++) {
+//			missile = missileList.get(i); // SpaceProcess에서 add된 missile을 missile변수에 대입
+//			buffg.drawImage(missileImage, missile.getBulletX(), missile.getBulletY(), this); // 버퍼에 (이미지,x,y) 이미지 그려넣기
+//			for(int j=0; j<enemyListR.size(); j++) {
+//				enemy = enemyListR.get(j);
+//				if(missileList!=null) {
+//					hitenemyR(i,j,missile,enemy);
+//				}
+//			}
+//			missile.move(); // missile x,y축 기준 각미사일별 +,- 속도 기입한 수치나 방향으로 이동
+//			if (missile.getBulletX()>=710 && missile.getBulletX()<=-20 &&  // 미사일좌표가 JFram 범위를 넘어갈시
+//					missile.getBulletY()>=710 && missile.getBulletY()<=10) { // 미사일좌표가 JFram 범위를 넘어갈시
+//				missileList.remove(i); // 해당 미사일객체 삭제
+//			}
+//		}
+//		}catch(Exception a) {		// j값만 출력됨으로 예외가 발생한다 try catch로 잡음
+//			new RuntimeException(a); // 예외를 객ㅊ
+//		}
+//}
+	public void hitenemyR(int i , int j , Missile m, Enemy e) { // 미사일 적기 충돌시
+		if( m.getBulletY() <= e.getenemyY()+e.getenemyHeight() &&
+				m.getBulletY()+m.getHeight() >= e.getenemyY() &&
+				m.getBulletX()+m.getWidth() >= e.getenemyX() &&
+				m.getBulletX() <= e.getenemyX()+e.getenemyWidth() 
+				) {
 			try {
-				missileList.remove(i); // missileList는 키를 누를때마다 객체가 리스트에 add되지만
-				enemyList.remove(j);	// enemyList는 스레드가 자동으로 객체를 리시트에 올려주기때문에 i값이 비어있을경우	
-			}catch(Exception a) {		// j값만 출력됨으로 예외가 발생한다 try catch로 잡음
-				new RuntimeException(a);
+				missileList.remove(i); // missileList 이미지객체 수 부족으로 예외발생
+				enemyListR.remove(j);	
+			}catch(Exception a) {		
+				new RuntimeException(a); 
 			}
 		}
 	}
-
-	public void enemyTh() { // 적기 생성용 스레드
+	public void hitenemyL(int i , int j , Missile m, Enemy e) { 
+		if(m.getBulletY() <= e.getenemyY()+e.getenemyHeight() &&
+				m.getBulletY()+m.getHeight() >= e.getenemyY() &&
+				m.getBulletX()+m.getWidth() >= e.getenemyX() &&
+				m.getBulletX() <= e.getenemyX()+e.getenemyWidth()
+				) {
+			try {
+				missileList.remove(i); 
+				enemyListL.remove(j);	
+			}catch(Exception a) {		
+				new RuntimeException(a); 
+			}
+		}
+	}
+	public void hitenemyU(int i , int j , Missile m, Enemy e) {
+		if(m.getBulletY() <= e.getenemyY()+e.getenemyHeight() &&
+				m.getBulletY()+m.getHeight() >= e.getenemyY() &&
+				m.getBulletX()+m.getWidth() >= e.getenemyX() &&
+				m.getBulletX() <= e.getenemyX()+e.getenemyWidth()
+				) {
+			try {
+				missileList.remove(i); 
+				enemyListU.remove(j);	
+			}catch(Exception a) {		
+				new RuntimeException(a); 
+			}
+		}
+	}
+	public void enemyThR() { // 적기 생성용 스레드
 		enemyThR = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -176,24 +380,100 @@ public class GameFrame extends JFrame implements KeyListener {
 						repaint(); // 갱신된 x,y값으로 이미지 새로 그리기
 						Thread.sleep(2000); // 약간의 딜레이를 주어 cpu의 과부하를 줄여줌
 					}catch (InterruptedException e) {
-						e.printStackTrace();
+						e.printStackTrace(); // 예외추적
 					}
 				}
 			}
 		});
 		enemyThR.start();
 	}
-	public void MakeEnemyR() { // 적기 생성 
-		enemycenter.setLocation("MakeEnemyR"); // EnemyCenter에 적기 생성위치 변수 바꿔주기
-		for (int i=100; i<=100*6; i+=100) {
-			if (makeenemyTh) {
-				enemy = enemycenter.getEnemyOne(x, y); // enemy에  Enemy 타입의 EnemyRight객체주소 대입
-				enemyOneImage = enemy.getImage(); // enemyOneImage에 EnemyRight를 참조한 EnemyOne이미지 대입
-				int xx = 720; // enemy 이미지 너비의 중앙을 xx변수에 대입 (시작시 enemy출현할 x좌표)
-				int yy = i; // enemy 이미지 높이의 중앙을 yy변수에 대입 (시작시 enemy출현할 y좌표)
-				enemy = enemycenter.getEnemyXY(enemy, xx, yy); // enemy변수에 EnemyRight 객체주소, x좌표, y좌표 대입
-				enemyList.add(enemy); 
+	public void enemyThL() { // 적기 생성용 스레드	
+		enemyThL = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while(flagTh) {
+					try {
+						MakeEnemyL(); // 적1 좌측 생성 메서드
+						repaint(); // 갱신된 x,y값으로 이미지 새로 그리기
+						Thread.sleep(2000); // 약간의 딜레이를 주어 cpu의 과부하를 줄여줌
+					}catch(InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
 			}
+		});
+		enemyThL.start();
+	}
+	public void enemyThU() { // 적기 생성용 스레드
+		enemyThU = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while(flagTh) {
+					try {
+						MakeEnemyU(); // 적1 좌측 생성 메서드
+						repaint(); // 갱신된 x,y값으로 이미지 새로 그리기
+						Thread.sleep(2000); // 약간의 딜레이를 주어 cpu의 과부하를 줄여줌
+					}catch(InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		enemyThU.start();
+	}
+	public void MakeEnemyR() { // 우측 적기 생성 
+		try {
+			enemycenter.setLocation("MakeEnemyR"); // EnemyCenter에 적기 생성위치 변수 바꿔주기
+			for (int i=0; i<=100*8; i+=100) {
+				if (flagTh) {
+					enemy = enemycenter.getEnemyOne(x, y); // enemy에  Enemy 타입의 EnemyRight객체주소 대입
+					enemyOneImageR = enemy.getImage(); // enemyOneImage에 EnemyRight를 참조한 EnemyOne이미지 대입
+					int xx = 720; // enemy 이미지 너비의 중앙을 xx변수에 대입 (시작시 enemy출현할 x좌표)
+					int yy = i; // enemy 이미지 높이의 중앙을 yy변수에 대입 (시작시 enemy출현할 y좌표)
+					enemy = enemycenter.setEnemyXY(enemy, xx, yy); // enemy변수에 EnemyRight 객체주소, x좌표, y좌표 대입
+					enemyListR.add(enemy);
+					if (cnt==0) {
+						
+					}
+				}
+			}
+		}catch(Exception a) {		
+			new RuntimeException(a); 
+		}
+	}
+	
+	public void MakeEnemyL() { // 좌측 적기 생성 
+		try {
+			enemycenter.setLocation("MakeEnemyL"); // EnemyCenter에 적기 생성위치 변수 바꿔주기
+			for (int i=50; i<=100*8; i+=100) {
+				if (flagTh) {
+					enemy = enemycenter.getEnemyOne(x, y); // enemy에  Enemy 타입의 EnemyRight객체주소 대입
+					enemyOneImageL = enemy.getImage(); // enemyOneImage에 EnemyRight를 참조한 EnemyOne이미지 대입
+					int xx = -20; // enemy 이미지 너비의 중앙을 xx변수에 대입 (시작시 enemy출현할 x좌표)
+					int yy = i; // enemy 이미지 높이의 중앙을 yy변수에 대입 (시작시 enemy출현할 y좌표)
+					enemy = enemycenter.setEnemyXY(enemy, xx, yy); // enemy변수에 EnemyRight 객체주소, x좌표, y좌표 대입
+					enemyListL.add(enemy); 
+				}
+			}
+		}catch(Exception a) {		
+			new RuntimeException(a); 
+		}
+	}
+	public void MakeEnemyU() { // 상단 적기 생성 
+		try {
+			enemycenter.setLocation("MakeEnemyU"); // EnemyCenter에 적기 생성위치 변수 바꿔주기
+			for (int i=100; i<=100*7; i+=100) {
+				if (flagTh) {
+					enemy = enemycenter.getEnemyOne(x, y); // enemy에  Enemy 타입의 EnemyRight객체주소 대입
+					enemyOneImageU = enemy.getImage(); // enemyOneImage에 EnemyRight를 참조한 EnemyOne이미지 대입
+					int xx = i; // enemy 이미지 너비의 중앙을 xx변수에 대입 (시작시 enemy출현할 x좌표)
+					int yy = -10; // enemy 이미지 높이의 중앙을 yy변수에 대입 (시작시 enemy출현할 y좌표)
+					enemy = enemycenter.setEnemyXY(enemy, xx, yy); // enemy변수에 EnemyRight 객체주소, x좌표, y좌표 대입
+					enemyListU.add(enemy); 
+				}
+			}
+		}catch(Exception a) {		
+			new RuntimeException(a); 
 		}
 	}
 	public void missileOneTh() { // 미사일 	발사용 스레드
@@ -214,14 +494,18 @@ public class GameFrame extends JFrame implements KeyListener {
 		missileOneTh.start(); // 스레드 시작
 	}
 	public void SpaceMissileProcess() { // 미사일 이미지 가져오기
-		if(keySpace) { // 스페이스키 true일때 (눌렀을때)
-			missile = missilecenter.getMissile(x, y); // player방향에 맞는 missile 객체주소를 missile에 대입
-			missileImage = missile.getImage(); // player방향에맞는 해당방향 미사일 이미지를 missileImage에 대입
-			int xx = x + player.getWidth(null) / 2 - missileImage.getWidth(null) / 2; // Player너비 중앙 - Missile너비 중앙을 x좌표에
-			int yy = y + player.getHeight(null) / 2 - missileImage.getHeight(null) / 2; // Player높이 중앙 - Missile높이 중앙을 y좌표에
-			missile = missilecenter.getMissileXY(missile, xx, yy); // missile에 missile객체주소, x좌표, y좌표를 대입
-			missileList.add(missile);// missileList에 좌표,너비,높이 올리기
-			keySpace = false; // missileList에 add될때 발사 하지않기 true시 리스트에 add할때마다 발사 
+		if(keyA) { // 스페이스키 true일때 (눌렀을때)
+			try {
+				missile = missilecenter.getMissile(x, y); // player방향에 맞는 missile 객체주소를 missile에 대입
+				missileImage = missile.getImage(); // player방향에맞는 해당방향 미사일 이미지를 missileImage에 대입
+				int xx = x + playerImage.getWidth(null) / 2 - missileImage.getWidth(null) / 2; // Player너비 중앙 - Missile너비 중앙을 x좌표에
+				int yy = y + playerImage.getHeight(null) / 2 - missileImage.getHeight(null) / 2; // Player높이 중앙 - Missile높이 중앙을 y좌표에
+				missile = missilecenter.getMissileXY(missile, xx, yy); // missile에 missile객체주소, x좌표, y좌표를 대입
+				missileList.add(missile);// missileList에 좌표,너비,높이 올리기
+				keyA = false; // missileList에 add될때 발사 하지않기 true시 리스트에 add할때마다 발사 
+			}catch(Exception a) {		// j값만 출력됨으로 예외가 발생한다 try catch로 잡음
+				new RuntimeException(a); // 예외를 객ㅊ
+			}
 		}
 	}
 	public void KeySettingTh() { // 키셋팅 스레드
@@ -257,7 +541,7 @@ public class GameFrame extends JFrame implements KeyListener {
 			keyRight = true;
 			break;
 		case KeyEvent.VK_Q: // 스페이스키 입력 처리 추가(미사일 발사)
-			keySpace = true;
+			keyA = true;
 			break;
 		}
 	}
@@ -277,72 +561,80 @@ public class GameFrame extends JFrame implements KeyListener {
 			keyRight = false;
 			break;
 		case KeyEvent.VK_Q: // 스페이스키 입력 처리 추가(미사일 발사)
-			keySpace = false;
+			keyA = false;
 			break;
 		}
 	}
 	public void KeyProcess() { // player이미지가 JFrame너비,높이를 넘어가지 못하게 이벤트 발생 
 		if (keyLeft&&!keyRight&&!keyUp&&!keyDown) { // ← 좌측키
 			if(x<=-20) {
+				this.type = "PlayerL";
 				playercenter.setType("PlayerL"); // 방향키를 누르면 PlayerCenter Type변경
 				missilecenter.setPlayertype("PlayerL"); // 방향키를 누르면 MissileCenter playertype에 문자열대입
-				player = playercenter.getPlayer().getPlayer(); // Image Player변수에 방향키에 맞는 이미지 대입
+				player = playercenter.getPlayer(); // Image Player변수에 방향키에 맞는 이미지 대입
 				playerList.add(player); // 해당 이미지를 PlayerList에 add.
 				x = -20;
 				x += 5;
 			}else {
+				this.type = "PlayerL";
 				playercenter.setType("PlayerL"); 
 				missilecenter.setPlayertype("PlayerL"); 
-				player = playercenter.getPlayer().getPlayer(); 
-				playerList.add(player); 
+				player = playercenter.getPlayer();
+				playerList.add(player);
 				x -= 5;
 			}
 		}
 		if (keyRight&&!keyLeft&&!keyUp&&!keyDown) { // → 우측키
 			if(x>=710) {
+				this.type = "PlayerR";
 				playercenter.setType("PlayerR");
 				missilecenter.setPlayertype("PlayerR");
-				player = playercenter.getPlayer().getPlayer();
+				player = playercenter.getPlayer()
 				playerList.add(player);
 				x = 710;
 				x += 5;
 			}else {
+				this.type = "PlayerR";
 				playercenter.setType("PlayerR");
 				missilecenter.setPlayertype("PlayerR");
-				player = playercenter.getPlayer().getPlayer();
+				player = playercenter.getPlayer();
 				playerList.add(player);
 				x += 5;
 			}
 		}
 		if (keyUp&&!keyDown&&!keyLeft&&!keyRight) { // ↑ 윗키
 			if(y<=10) { // y가 좌표 10보다 같거나 작을때
+				this.type = "PlayerU";
 				playercenter.setType("PlayerU");
 				missilecenter.setPlayertype("PlayerU");
-				player = playercenter.getPlayer().getPlayer();
+				player = playercenter.getPlayer();
 				playerList.add(player);
 				y = 10; // y좌표 10에서 멈추게하기
 				y -=5;
 			}else { // 아닐시
+				this.type = "PlayerU";
 				playercenter.setType("PlayerU");
 				missilecenter.setPlayertype("PlayerU");
-				player = playercenter.getPlayer().getPlayer();
+				player = playercenter.getPlayer();
 				playerList.add(player);
 				y -= 5; // y좌표에서 이동
 			}
 		}
 		if (keyDown && !keyUp && !keyLeft && !keyRight) { // ↓ 아랫키
 			if (y >= 710) { // JFrame y+710를 넘어갈시
+				this.type = "PlayerD";
 				playercenter.setType("PlayerD");
 				missilecenter.setPlayertype("PlayerD");
-				player = playercenter.getPlayer().getPlayer();
+				player = playercenter.getPlayer();
 				playerList.add(player);
 				y = 710; // JFrame y+710를 넘어갈시 멈춤
 				y += 5;
 			} else {
+				this.type = "PlayerD";
 				playercenter.setType("PlayerD");
 				missilecenter.setPlayertype("PlayerD");
-				player = playercenter.getPlayer().getPlayer();
-				playerList.add(player);
+				playerImage = playercenter.getPlayer().getPlayer();
+				playerList.add(playerImage);
 				y += 5;
 			}
 		}
@@ -351,27 +643,30 @@ public class GameFrame extends JFrame implements KeyListener {
 				x = -20;
 				if(y<=+10) {
 					y = +10;
+					type = "PlayerLU";
 					playercenter.setType("PlayerLU");
 					missilecenter.setPlayertype("PlayerLU");
-					player = playercenter.getPlayer().getPlayer();
-					playerList.add(player);
+					playerImage = playercenter.getPlayer().getPlayer();
+					playerList.add(playerImage);
 				}
 				x -= 5;
 				y -= 5;
 			}else if(y<=+10) {
 				y=+10;
+				this.type = "PlayerLU";
 				playercenter.setType("PlayerLU");
 				missilecenter.setPlayertype("PlayerLU");
-				player = playercenter.getPlayer().getPlayer();
-				playerList.add(player);
+				playerImage = playercenter.getPlayer().getPlayer();
+				playerList.add(playerImage);
 				x -= 5;
 				y -= 5;
 			}
 			else {
+				this.type = "PlayerLU";
 				playercenter.setType("PlayerLU");
 				missilecenter.setPlayertype("PlayerLU");
-				player = playercenter.getPlayer().getPlayer();
-				playerList.add(player);
+				playerImage = playercenter.getPlayer().getPlayer();
+				playerList.add(playerImage);
 				x -= 5;
 				y -= 5;
 			}
@@ -382,26 +677,29 @@ public class GameFrame extends JFrame implements KeyListener {
 				x = -20;
 				if (y >= 710) {
 					y = 710;
+					this.type = "PlayerLD";
 					playercenter.setType("PlayerLD");
 					missilecenter.setPlayertype("PlayerLD");
-					player = playercenter.getPlayer().getPlayer();
-					playerList.add(player);
+					playerImage = playercenter.getPlayer().getPlayer();
+					playerList.add(playerImage);
 				}
 				x -= 5;
 				y += 5;
 			} else if (y >= +710) {
 				y = +710;
+				this.type = "PlayerLD";
 				playercenter.setType("PlayerLD");
 				missilecenter.setPlayertype("PlayerLD");
-				player = playercenter.getPlayer().getPlayer();
-				playerList.add(player);
+				playerImage = playercenter.getPlayer().getPlayer();
+				playerList.add(playerImage);
 				x -= 5;
 				y += 5;
 			} else {
+				this.type = "PlayerLD";
 				playercenter.setType("PlayerLD");
 				missilecenter.setPlayertype("PlayerLD");
-				player = playercenter.getPlayer().getPlayer();
-				playerList.add(player);
+				playerImage = playercenter.getPlayer().getPlayer();
+				playerList.add(playerImage);
 				x -= 5;
 				y += 5;
 			}
@@ -410,28 +708,39 @@ public class GameFrame extends JFrame implements KeyListener {
 		if (keyRight&&keyUp&&!keyDown&&!keyLeft){ // ↗ 우측상단키
 			if (x >= 710) {
 				x = 710;
-				if(y <= +10) {
-					y = +10;
+				if(y <= +15) {
+					y = +15;
+					this.type = "PlayerRU";
 					playercenter.setType("PlayrRU");
 					missilecenter.setPlayertype("PlayerRU");
-					player = playercenter.getPlayer().getPlayer();
-					playerList.add(player);
+					try {
+						playerImage = playercenter.getPlayer().getPlayer();
+					}catch(Exception a) {		
+						new RuntimeException(a);  
+					}
+					playerList.add(playerImage);
 				}
 				x += 5;
 				y -= 5;
 			}else if(y <= +10) {
 				y = +10;
+				this.type = "PlayerRU";
 				playercenter.setType("PlayrRU");
 				missilecenter.setPlayertype("PlayerRU");
-				player = playercenter.getPlayer().getPlayer();
-				playerList.add(player);
+				try {
+					playerImage = playercenter.getPlayer().getPlayer();
+				}catch(Exception a) {		
+					new RuntimeException(a); 
+				}
+				playerList.add(playerImage);
 				x += 5;
 				y -= 5;
 			}else {
+				this.type = "PlayerRU";
 				playercenter.setType("PlayerRU");
 				missilecenter.setPlayertype("PlayerRU");
-				player = playercenter.getPlayer().getPlayer();
-				playerList.add(player);
+				playerImage = playercenter.getPlayer().getPlayer();
+				playerList.add(playerImage);
 				x += 5;
 				y -= 5;
 			}
@@ -441,26 +750,29 @@ public class GameFrame extends JFrame implements KeyListener {
 				x = 710;
 				if(y >= 710) {
 					y = 710;
+					this.type = "PlayerRD";
 					playercenter.setType("PlayerRD");
 					missilecenter.setPlayertype("PlayerRD");
-					player = playercenter.getPlayer().getPlayer();
-					playerList.add(player);
+					playerImage = playercenter.getPlayer().getPlayer();
+					playerList.add(playerImage);
 				}
 				x += 5;
 				y += 5;
 			}else if(y >= 710) {
 				y = 710;
+				this.type = "PlayerRD";
 				playercenter.setType("PlayerRD");
 				missilecenter.setPlayertype("PlayerRD");
-				player = playercenter.getPlayer().getPlayer();
-				playerList.add(player);
+				playerImage = playercenter.getPlayer().getPlayer();
+				playerList.add(playerImage);
 				x += 5;
 				y += 5;
 			}else {
+				this.type = "PlayerRD";
 				playercenter.setType("PlayerRD");
 				missilecenter.setPlayertype("PlayerRD");
-				player = playercenter.getPlayer().getPlayer();
-				playerList.add(player);
+				playerImage = playercenter.getPlayer().getPlayer();
+				playerList.add(playerImage);
 				x += 5;
 				y += 5;
 			}
