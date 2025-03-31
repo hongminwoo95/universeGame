@@ -23,10 +23,6 @@ import missile.MissileCenter;
 
 public class GameFrame extends JFrame implements KeyListener {
 	
-	private static GameFrame gameframe = new GameFrame();
-	private static GameFrame getgameframe() {
-		return gameframe;
-	}
 	
 	private int f_width = 800; // 프레임 너비설정
 	private int f_height = 800; // 프레임 높이 설정
@@ -45,7 +41,6 @@ public class GameFrame extends JFrame implements KeyListener {
 	boolean keyRight = false; // 오른쪽
 	boolean keyA = false; // 스페이스 (미사일 발사)
 	boolean flagTh = true; // 전체 스레드 종료,시작 설정
-	boolean replay = false; // 게임 재시작
 	
 	// 참조형
 	private Missile missile; // 미사일 인터페이스 참조변수
@@ -68,9 +63,10 @@ public class GameFrame extends JFrame implements KeyListener {
 	private int y = 300; // 게임시작시 최초 player이미지 생성할 y좌표
 	private int enemyX = 0; // 게임시작시 최초 enemy이미지 생설할 x좌표
 	private int enemyY = 0; // 게임시작시 최초 enemy이미지 생설할 y좌표
-	private int cnt = 1; // 목숨 10개
+	private int cnt = 3; // 목숨 10개
 	private int timemillisecond; // 0.1초 
 	private int timer; // 1초마다 1개씩 올라감
+	private int speed = 5; // 플레이어 속도 조절 변수
 	
 	private Image buffImage; // 더블 버퍼링용 이미지
 	private Graphics buffg; // 더블 버퍼링용 그리기
@@ -90,6 +86,7 @@ public class GameFrame extends JFrame implements KeyListener {
 	Thread enemyThD; // 하단 적기 생성 스레드 변수
 	Thread missileOneTh; // Player 미사일 발사용 스레드
 	Thread timerTh; // 타이머용 스레드
+	Thread replayTh; //리플레이 스레드
 	
 	GameFrame() {
 		init(); // 캐릭터 및 몬스터 좌표 설정
@@ -98,7 +95,8 @@ public class GameFrame extends JFrame implements KeyListener {
 		enemyThL(); // 좌측 적기 생성용 스레드
 		enemyThU(); // 상단 적기 생성용 스레드
 		enemyThD(); // 하단 적기 생성용 스레드
-		start(); // 시작메서드
+		KeySettingTh(); // player 키보드 이벤트 발생 관련 스레드
+		missileOneTh(); // 미사일 발사용 스레드 시작
 		setTitle("우주모험가"); // 프레임 타이틀 설정
 		setSize(f_width, f_height); // 프레임 크기 설정 (프레임을 윈도우에 표시 위치셋팅,이미지를 불러오기 위한 툴킷 , 모니터 해상도 값 받아오기)
 		Dimension screen = tk.getScreenSize(); // 모니터 해상도 얻어오기 (모니터 해상도에서 이미지 불러오기)
@@ -112,13 +110,9 @@ public class GameFrame extends JFrame implements KeyListener {
 		setDefaultCloseOperation(EXIT_ON_CLOSE); // 프레임을 닫았을시 프로그램 실행종료
 	}
 	public void init() { // 각종 이미지 객체 생성
-		background = new ImageIcon("images/얼음행성.png").getImage(); // 맵 이미지 생성
+		background = new ImageIcon("images/배경화면.png").getImage(); // 맵 이미지 생성
 		playerImage = new ImageIcon("images/중앙.png").getImage(); // player생성후 키보드 이벤트 발생전 이미지 -> 키이벤트 발생시 이미지변경
 		boomImage = new ImageIcon("images/폭발.png").getImage();
-	}
-	public void start() { // 시작 메서드
-		KeySettingTh(); // player 키보드 이벤트 발생 관련 스레드
-		missileOneTh(); // 미사일 발사용 스레드 시작
 	}
 	public void paint(Graphics g) { // 버퍼 준비 과정 작업
 		buffImage = createImage(f_width, f_height); 
@@ -144,13 +138,12 @@ public class GameFrame extends JFrame implements KeyListener {
 		Draw_enemyOneD(); // 하단적기 그림 가져옴
 		buffg.setColor(Color.WHITE);
 		buffg.setFont(new Font("Defualt", Font.BOLD, 25));
-		buffg.drawString("게임시간 : " + timer, 310, 100);
-		buffg.drawString("남은목숨 : " + cnt, 310, 130);
+		buffg.drawString("게임시간 : " + timer, 310, 80);
+		buffg.drawString("남은목숨 : " + cnt, 310, 110);
 		if (cnt==0) {
 			buffg.setColor(Color.RED);
 			buffg.setFont(new Font("Defualt", Font.BOLD, 50));
 			buffg.drawString( " GAME OVER " , 240, 400);
-			
 		}
 		g.drawImage(buffImage, 0, 0, this); // 버퍼에 그린 그림을 버퍼에 덮어씌우기 (아래에서 그린그림 찍어내기)
 	}
@@ -308,7 +301,11 @@ public class GameFrame extends JFrame implements KeyListener {
 		try {
 			for (int i=0; i<playerList.size(); i++) {
 				player = playerList.get(i); // player해당 객체 player변수에 대입
-				playerImage = player.getPlayer(); // player Image가 있는 객체 주소를 playerImage변수에 대입
+				try {
+					playerImage = player.getPlayer(); // player Image가 있는 객체 주소를 playerImage변수에 대입
+				}catch(Exception e) {
+					
+				}
 				buffg.drawImage(playerImage, x, y, 48, 41, this); // 프레임에 player에 저장된 변환되는 이미지를 x=100, y=100 좌표에 100x100해상도로 그려넣습니다.
 				if(i < playerList.size()-1) // 출력되는 이미지중 마지막 1객체주소를 제외하고
 					playerList.remove(i); // 모두 삭제
@@ -466,7 +463,7 @@ public class GameFrame extends JFrame implements KeyListener {
 					try {
 						MakeEnemyR(); // 우측 생성 메서드
 						repaint(); // 갱신된 x,y값으로 이미지 새로 그리기
-						Thread.sleep(2500); // 약간의 딜레이를 주어 cpu의 과부하를 줄여줌
+						Thread.sleep(1000); // 약간의 딜레이를 주어 cpu의 과부하를 줄여줌
 					}catch (InterruptedException e) {
 						e.printStackTrace(); // 예외추적
 					}
@@ -483,7 +480,7 @@ public class GameFrame extends JFrame implements KeyListener {
 					try {
 						MakeEnemyL(); // 좌측 생성 메서드
 						repaint(); // 갱신된 x,y값으로 이미지 새로 그리기
-						Thread.sleep(2500); // 약간의 딜레이를 주어 cpu의 과부하를 줄여줌
+						Thread.sleep(1000); // 약간의 딜레이를 주어 cpu의 과부하를 줄여줌
 					}catch(InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -500,7 +497,7 @@ public class GameFrame extends JFrame implements KeyListener {
 					try {
 						MakeEnemyU(); // 상단 생성 메서드
 						repaint(); // 갱신된 x,y값으로 이미지 새로 그리기
-						Thread.sleep(2000); // 약간의 딜레이를 주어 cpu의 과부하를 줄여줌
+						Thread.sleep(1000); // 약간의 딜레이를 주어 cpu의 과부하를 줄여줌
 					}catch(InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -517,7 +514,7 @@ public class GameFrame extends JFrame implements KeyListener {
 					try {
 						MakeEnemyD(); // 하단 생성 메서드
 						repaint(); // 갱신된 x,y값으로 이미지 새로 그리기
-						Thread.sleep(2000); // 약간의 딜레이를 주어 cpu의 과부하를 줄여줌
+						Thread.sleep(1000); // 약간의 딜레이를 주어 cpu의 과부하를 줄여줌
 					}catch(InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -547,7 +544,7 @@ public class GameFrame extends JFrame implements KeyListener {
 	public void MakeEnemyR() { // 우측 적기 생성 
 		try {
 			enemycenter.setLocation("MakeEnemyR"); // EnemyCenter에 적기 생성위치 변수 바꿔주기
-			for (int i=100; i<=150*8; i+=100) { // (시작위치 , 간격*개채수, 프레임까지)
+			for (int i=0; i<=150*8; i+=100) { // (시작위치 , 간격*개채수, 프레임까지)
 				if (flagTh) {
 					enemy = enemycenter.getEnemyOne(x, y); // enemy에  Enemy 타입의 EnemyRight객체주소 대입
 					enemyOneImageR = enemy.getImage(); // enemyOneImage에 EnemyRight를 참조한 EnemyOne이미지 대입
@@ -566,7 +563,7 @@ public class GameFrame extends JFrame implements KeyListener {
 	public void MakeEnemyL() { // 좌측 적기 생성 
 		try {
 			enemycenter.setLocation("MakeEnemyL"); // EnemyCenter에 적기 생성위치 변수 바꿔주기
-			for (int i=100; i<=150*8; i+=100) {
+			for (int i=130; i<=150*8; i+=100) {
 				if (flagTh) {
 					enemy = enemycenter.getEnemyOne(x, y); // enemy에  Enemy 타입의 EnemyRight객체주소 대입
 					enemyOneImageL = enemy.getImage(); // enemyOneImage에 EnemyRight를 참조한 EnemyOne이미지 대입
@@ -583,7 +580,7 @@ public class GameFrame extends JFrame implements KeyListener {
 	public void MakeEnemyU() { // 상단 적기 생성 
 		try {
 			enemycenter.setLocation("MakeEnemyU"); // EnemyCenter에 적기 생성위치 변수 바꿔주기
-			for (int i=100; i<=150*8; i+=100) {
+			for (int i=0; i<=150*8; i+=100) {
 				if (flagTh) {
 					enemy = enemycenter.getEnemyOne(x, y); // enemy에  Enemy 타입의 EnemyRight객체주소 대입
 					enemyOneImageU = enemy.getImage(); // enemyOneImage에 EnemyRight를 참조한 EnemyOne이미지 대입
@@ -600,7 +597,7 @@ public class GameFrame extends JFrame implements KeyListener {
 	public void MakeEnemyD() { // 하단 적기 생성 
 		try {
 			enemycenter.setLocation("MakeEnemyD"); // EnemyCenter에 적기 생성위치 변수 바꿔주기
-			for (int i=100; i<=150*8; i+=100) {
+			for (int i=130; i<=150*10; i+=100) {
 				if (flagTh) {
 					enemy = enemycenter.getEnemyOne(x, y); // enemy에  Enemy 타입의 EnemyRight객체주소 대입
 					enemyOneImageD = enemy.getImage(); // enemyOneImage에 EnemyRight를 참조한 EnemyOne이미지 대입
@@ -648,8 +645,9 @@ public class GameFrame extends JFrame implements KeyListener {
 		case KeyEvent.VK_A: // 스페이스키 입력 처리 추가(미사일 발사)
 			keyA = true;
 			break;
-		case KeyEvent.VK_R: // 스페이스키 입력 처리 추가(미사일 발사)
-			replay = true;
+		case KeyEvent.VK_R: // 게임 재시작 버튼
+			this.dispose();
+			new GameFrame();
 			break;
 		}
 	}
@@ -671,9 +669,6 @@ public class GameFrame extends JFrame implements KeyListener {
 		case KeyEvent.VK_A: // 스페이스키 입력 처리 추가(미사일 발사)
 			keyA = false;
 			break;
-		case KeyEvent.VK_R: // 스페이스키 입력 처리 추가(미사일 발사)
-			replay = false;
-			break;
 		}
 	}
 	public void KeyProcess() { // player이미지가 JFrame너비,높이를 넘어가지 못하게 이벤트 발생 
@@ -685,14 +680,14 @@ public class GameFrame extends JFrame implements KeyListener {
 				missilecenter.setPlayertype("PlayerL"); // 방향키를 누르면 MissileCenter playertype에 문자열대입
 				player = playercenter.getPlayer(); // Image Player변수에 방향키에 맞는 이미지 대입
 				playerList.add(player); // 해당 이미지를 PlayerList에 add.
-				x += 5;
+				x += speed;
 			}else {
 				this.type = "PlayerL";
 				playercenter.setType("PlayerL"); 
 				missilecenter.setPlayertype("PlayerL"); 
 				player = playercenter.getPlayer();
 				playerList.add(player);
-				x -= 5;
+				x -= speed;
 			}
 		}
 		if (keyRight&&!keyLeft&&!keyUp&&!keyDown) { // → 우측키
@@ -703,14 +698,14 @@ public class GameFrame extends JFrame implements KeyListener {
 				missilecenter.setPlayertype("PlayerR");
 				player = playercenter.getPlayer();
 				playerList.add(player);
-				x += 5;
+				x += speed;
 			}else {
 				this.type = "PlayerR";
 				playercenter.setType("PlayerR");
 				missilecenter.setPlayertype("PlayerR");
 				player = playercenter.getPlayer();
 				playerList.add(player);
-				x += 5;
+				x += speed;
 			}
 		}
 		if (keyUp&&!keyDown&&!keyLeft&&!keyRight) { // ↑ 윗키
@@ -721,14 +716,14 @@ public class GameFrame extends JFrame implements KeyListener {
 				missilecenter.setPlayertype("PlayerU");
 				player = playercenter.getPlayer();
 				playerList.add(player);
-				y -=5;
+				y -=speed;
 			}else { // 아닐시
 				this.type = "PlayerU";
 				playercenter.setType("PlayerU");
 				missilecenter.setPlayertype("PlayerU");
 				player = playercenter.getPlayer();
 				playerList.add(player);
-				y -= 5; // y좌표에서 이동
+				y -= speed; // y좌표에서 이동
 			}
 		}
 		if (keyDown && !keyUp && !keyLeft && !keyRight) { // ↓ 아랫키
@@ -739,19 +734,19 @@ public class GameFrame extends JFrame implements KeyListener {
 				missilecenter.setPlayertype("PlayerD");
 				player = playercenter.getPlayer();
 				playerList.add(player);
-				y += 5;
+				y += speed;
 			} else {
 				this.type = "PlayerD";
 				playercenter.setType("PlayerD");
 				missilecenter.setPlayertype("PlayerD");
 				player = playercenter.getPlayer();
 				playerList.add(player);
-				y += 5;
+				y += speed;
 			}
 		}
 		if (keyLeft&&keyUp&&!keyDown&&!keyRight){ // 좌측상단 ↖키
-			if (x<=-20 && y<=+10) {
-				x = -20;
+			if (x<=-10) {
+				x = -10;
 				if(y<=+10) {
 					y = +10;
 					type = "PlayerLU";
@@ -760,8 +755,8 @@ public class GameFrame extends JFrame implements KeyListener {
 					player = playercenter.getPlayer();
 					playerList.add(player);
 				}
-				x -= 5;
-				y -= 5;
+				x -= speed;
+				y -= speed;
 			}else if(y<=+10) {
 				y=+10;
 				this.type = "PlayerLU";
@@ -769,8 +764,8 @@ public class GameFrame extends JFrame implements KeyListener {
 				missilecenter.setPlayertype("PlayerLU");
 				player = playercenter.getPlayer();
 				playerList.add(player);
-				x -= 5;
-				y -= 5;
+				x -= speed;
+				y -= speed;
 			}
 			else {
 				this.type = "PlayerLU";
@@ -778,8 +773,8 @@ public class GameFrame extends JFrame implements KeyListener {
 				missilecenter.setPlayertype("PlayerLU");
 				player = playercenter.getPlayer();
 				playerList.add(player);
-				x -= 5;
-				y -= 5;
+				x -= speed;
+				y -= speed;
 			}
 		
 		}
@@ -794,8 +789,8 @@ public class GameFrame extends JFrame implements KeyListener {
 					player = playercenter.getPlayer();
 					playerList.add(player);
 				}
-				x -= 5;
-				y += 5;
+				x -= speed;
+				y += speed;
 			} else if (y >= +710) {
 				y = +710;
 				this.type = "PlayerLD";
@@ -803,16 +798,16 @@ public class GameFrame extends JFrame implements KeyListener {
 				missilecenter.setPlayertype("PlayerLD");
 				player = playercenter.getPlayer();
 				playerList.add(player);
-				x -= 5;
-				y += 5;
+				x -= speed;
+				y += speed;
 			} else {
 				this.type = "PlayerLD";
 				playercenter.setType("PlayerLD");
 				missilecenter.setPlayertype("PlayerLD");
 				player = playercenter.getPlayer();
 				playerList.add(player);
-				x -= 5;
-				y += 5;
+				x -= speed;
+				y += speed;
 			}
 
 		}
@@ -831,8 +826,8 @@ public class GameFrame extends JFrame implements KeyListener {
 					}
 					playerList.add(player);
 				}
-				x += 5;
-				y -= 5;
+				x += speed;
+				y -= speed;
 			}else if(y <= +10) {
 				y = +10;
 				this.type = "PlayerRU";
@@ -844,16 +839,16 @@ public class GameFrame extends JFrame implements KeyListener {
 					new RuntimeException(a); 
 				}
 				playerList.add(player);
-				x += 5;
-				y -= 5;
+				x += speed;
+				y -= speed;
 			}else {
 				this.type = "PlayerRU";
 				playercenter.setType("PlayerRU");
 				missilecenter.setPlayertype("PlayerRU");
 				player = playercenter.getPlayer();
 				playerList.add(player);
-				x += 5;
-				y -= 5;
+				x += speed;
+				y -= speed;
 			}
 		}
 		if (keyRight&&keyDown&&!keyUp&&!keyLeft){ // ↘ 우측하단키 
@@ -867,8 +862,8 @@ public class GameFrame extends JFrame implements KeyListener {
 					player = playercenter.getPlayer();
 					playerList.add(player);
 				}
-				x += 5;
-				y += 5;
+				x += speed;
+				y += speed;
 			}else if(y >= 710) {
 				y = 710;
 				this.type = "PlayerRD";
@@ -876,16 +871,16 @@ public class GameFrame extends JFrame implements KeyListener {
 				missilecenter.setPlayertype("PlayerRD");
 				player = playercenter.getPlayer();
 				playerList.add(player);
-				x += 5;
-				y += 5;
+				x += speed;
+				y += speed;
 			}else {
 				this.type = "PlayerRD";
 				playercenter.setType("PlayerRD");
 				missilecenter.setPlayertype("PlayerRD");
 				player = playercenter.getPlayer();
 				playerList.add(player);
-				x += 5;
-				y += 5;
+				x += speed;
+				y += speed;
 			}
 		}
  	}
